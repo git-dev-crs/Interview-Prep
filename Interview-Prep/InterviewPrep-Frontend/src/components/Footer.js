@@ -4,8 +4,7 @@ import {
     FaFacebookF,
     FaTwitter,
     FaLinkedinIn,
-    FaInstagram,
-    FaGithub
+    FaInstagram
 } from "react-icons/fa";
 
 const Footer = () => {
@@ -14,7 +13,7 @@ const Footer = () => {
     const SocialLink = ({ href, icon }) => (
         <a
             href={href}
-            className="w-10 h-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center transition-colors hover:bg-primary hover:text-primary-foreground"
+            className="w-10 h-10 rounded-full bg-secondary/10 text-muted-foreground flex items-center justify-center transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:scale-110"
         >
             {icon}
         </a>
@@ -23,18 +22,18 @@ const Footer = () => {
     const FooterLink = ({ to, children }) => (
         <Link
             to={to}
-            className="text-muted-foreground hover:text-primary transition-colors text-sm"
+            className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium"
         >
             {children}
         </Link>
     );
 
     return (
-        <footer className="bg-muted/30 border-t border-border mt-auto">
-            <div className="container mx-auto px-4 py-12">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+        <footer className="bg-background border-t border-border/50 py-12">
+            <div className="container mx-auto px-4">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
 
-                    {/* Social Icons */}
+                    {/* Social Icons (Left) */}
                     <div className="flex gap-4">
                         <SocialLink href="#" icon={<FaFacebookF />} />
                         <SocialLink href="#" icon={<FaTwitter />} />
@@ -42,8 +41,8 @@ const Footer = () => {
                         <SocialLink href="#" icon={<FaInstagram />} />
                     </div>
 
-                    {/* Links */}
-                    <div className="flex flex-wrap justify-center gap-8">
+                    {/* Links (Right) */}
+                    <div className="flex flex-wrap justify-center md:justify-end gap-8">
                         <FooterLink to="/">Home</FooterLink>
                         <FooterLink to="/about">About</FooterLink>
                         <FooterLink to="/services">Services</FooterLink>
@@ -52,7 +51,7 @@ const Footer = () => {
                     </div>
                 </div>
 
-                <div className="mt-8 pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
+                <div className="border-t border-gray-400 pt-8 text-center text-sm text-muted-foreground">
                     <p>&copy; {currentYear} Interview Prep | All Rights Reserved</p>
                 </div>
             </div>
