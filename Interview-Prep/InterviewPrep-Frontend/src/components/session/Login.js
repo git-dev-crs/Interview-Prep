@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Nav from "../Nav";
 import { Link, useNavigate } from "react-router-dom";
+import { FaLock, FaEnvelope, FaExclamationCircle } from "react-icons/fa";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,7 +19,8 @@ const Login = () => {
     }
   }, [email, password]);
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    if (e) e.preventDefault();
     const data = {
       email,
       password,
@@ -27,9 +30,9 @@ const Login = () => {
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json", // Set the content type to JSON
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(data), // Convert the data object to a JSON string
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
@@ -37,7 +40,7 @@ const Login = () => {
         setGetError(error);
         throw new Error("Network response was not ok");
       } else {
-        const result = await response.json(); // Parse the JSON response
+        const result = await response.json();
         localStorage.setItem("email", result.email);
         localStorage.setItem("rating", result.rating);
         navigate("/");
@@ -46,84 +49,86 @@ const Login = () => {
       console.error("There was a problem with the fetch operation:", error);
     }
   };
+
   return (
-    <>
+    <div className="min-h-screen bg-background flex flex-col">
       <Nav />
-      <div className="w-full h-screen">
-        <div className="max-w-96 border my-auto mx-auto border-gray-200 rounded p-3 mt-24">
-          <div className="w-full">
-            <h1 className="text-center font-semibold text-xl">Log in</h1>
-            {getError && (
-              <div className="border bg-red-100 px-2 py-1 w-full rounded text-sm mt-4">
-                {getError.message}
-              </div>
-            )}
-            <div className="pt-6">
-              <div className="flex justify-between text-gray-500 text-sm">
-                <label className="" for="email">
-                  Email
-                </label>
-                <p>
-                  Need an account?{" "}
-                  <Link to="/signup" className="text-[#0d960d] no-underline">
-                    <span className="text-blue-400 text-sm">Sign up</span>
-                  </Link>
-                </p>
-              </div>
-              <div className="pt-1">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-card border border-border/50 rounded-xl shadow-2xl p-8 animate-in fade-in zoom-in duration-500">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>
+            <p className="text-muted-foreground mt-2">Enter your credentials to access your account</p>
+          </div>
+
+          {getError && (
+            <div className="mb-6 p-4 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-3 text-destructive text-sm">
+              <FaExclamationCircle className="w-5 h-5 flex-shrink-0" />
+              <span>{getError.message}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground ml-1">Email</label>
+              <div className="relative">
+                <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
-                  className="rounded border px-2 py-1 border-gray-200 w-full outline-none"
                   type="text"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="name@example.com"
                   onChange={(e) => setEmail(e.target.value)}
+                  value={email}
                 />
-                {email.length === 0 && (
-                  <p className="text-red-500 text-sm">*Required field</p>
-                )}
               </div>
             </div>
-            <div className="pt-6">
-              <label for="password" className=" text-gray-500 text-sm">
-                Password
-              </label>
-              <br />
-              <div className="pt-1">
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center ml-1">
+                <label className="text-sm font-medium text-foreground">Password</label>
+                <a href="#" className="text-xs text-primary hover:underline">Forgot password?</a>
+              </div>
+
+              <div className="relative">
+                <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
-                  className="rounded border px-2 py-1 border-gray-200 w-full outline-none"
                   type="password"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="••••••••"
                   onChange={(e) => setPassword(e.target.value)}
+                  value={password}
                 />
-                {password.length === 0 && (
-                  <p className="text-red-500 text-sm">*Required field</p>
-                )}
               </div>
             </div>
 
-            <div className="pt-4 flex items-center">
-              <input type="checkbox" />
-              <span className="ml-1 text-sm">Remind me</span>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="remember"
+                className="h-4 w-4 rounded border-primary text-primary focus:ring-primary/25 bg-background"
+              />
+              <label htmlFor="remember" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-muted-foreground">
+                Remember me
+              </label>
             </div>
 
-            <div className="w-full pt-6">
-              <button
-                className={`w-full py-1 rounded text-white text-center ${
-                  isDisable ? "bg-emerald-300" : "bg-emerald-600"
-                }`}
-                disabled={isDisable}
-                onClick={() => handleLogin()}
-              >
-                Log in
-              </button>
-              <a
-                href="#"
-                className="flex justify-center no-underline text-blue-400 text-sm"
-              >
-                Forgot password?
-              </a>
-            </div>
+            <button
+              type="submit"
+              disabled={isDisable}
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full shadow-lg shadow-primary/20"
+            >
+              Log in
+            </button>
+          </form>
+
+          <div className="mt-6 text-center text-sm">
+            <span className="text-muted-foreground">Don't have an account? </span>
+            <Link to="/signup" className="font-medium text-primary hover:underline">
+              Sign up
+            </Link>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

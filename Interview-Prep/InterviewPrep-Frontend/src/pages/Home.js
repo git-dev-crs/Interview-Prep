@@ -1,408 +1,180 @@
 import React from "react";
-import "../styles/home.css";
 import Nav from "../components/Nav";
+import Footer from "../components/Footer";
 import { Link } from "react-router-dom";
-const Home = () => {
-  return (
-    <div>
-      <Nav />
-      <div class="introduction">
-        <div class="intro-1">
-          <h2 className="text-[#ce0000] text-2xl font-bold mb-2">Who are We</h2>
-          <h1 className="mb-4 text-3xl font-bold leading-9 tracking-tight text-gray-900 md:text-4xl lg:text-5xl">
-            Empowering Coders, Enabling Dreams
-          </h1>
-          <p className="mt-4">
-            Unveil the essence of InterviewPrep: a community-driven platform
-            dedicated to empowering coders of all levels. Discover who we are
-            and how we're shaping the future of coding education.
-          </p>
-          <div>
-            <div class="button" id="button-2">
-              <div id="slide"></div>
-              <Link to="/generate-list-parameter">Explore DSA</Link>
-            </div>
-          </div>
-        </div>
-        <div class="intro-2">
-          <img
-            width="300px"
-            height="300px"
-            src="https://img.freepik.com/free-vector/colourful-illustration-programmer-working_23-2148281410.jpg?w=740&t=st=1710936470~exp=1710937070~hmac=9f15d0bc75221c0e89be3213ced3278d8f35d3c33b013c45c365ae5525cdec96"
-            alt=""
-          />
-        </div>
-      </div>
+import { FaCode, FaFileAlt, FaVideo, FaQuestionCircle, FaArrowRight } from "react-icons/fa";
 
-      <div class="features">
-        <div class="feature-items">
-          <div>
-            <img
-              width="22px"
-              height="20px"
-              src="https://cdn-icons-png.flaticon.com/128/57/57073.png"
-              alt=""
-            />
-            <p>INTERVIEW QUESTIONS</p>
+const HeroSection = () => (
+  <section className="relative pt-20 pb-32 overflow-hidden bg-background">
+    <div className="container mx-auto px-4 relative z-10">
+      <div className="flex flex-col lg:flex-row items-center gap-12">
+        <div className="lg:w-1/2 space-y-8 animate-in slide-in-from-left duration-700">
+          <div className="inline-flex items-center px-3 py-1 rounded-full border border-primary/20 bg-primary/10 text-primary text-sm font-medium">
+            🚀 The #1 Coding Interview Platform
           </div>
-          <div>
-            <img
-              width="20px"
-              height="20px"
-              src="https://cdn-icons-png.flaticon.com/128/2991/2991115.png"
-              alt=""
-            />
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground leading-tight">
+            Empowering Coders, <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">
+              Enabling Dreams
+            </span>
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
+            Unveil the essence of InterviewPrep: a community-driven platform dedicated to empowering coders of all levels. Master DSA, System Design, and Core Subjects with our curated paths.
+          </p>
+          <div className="flex flex-wrap gap-4">
             <Link
               to="/generate-list-parameter"
-              className="a hover:cursor-pointer"
+              className="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/25"
             >
-              GENERATE SHEET
+              Explore DSA
+              <FaArrowRight className="ml-2 w-4 h-4" />
+            </Link>
+            <Link
+              to="/core-subject"
+              className="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-foreground bg-secondary rounded-lg hover:bg-secondary/80 transition-all"
+            >
+              CS Core Subjects
             </Link>
           </div>
-          <div>
+        </div>
+        <div className="lg:w-1/2 relative animate-in slide-in-from-right duration-700">
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border/50 bg-card/50">
             <img
-              width="25px"
-              height="22px"
-              src="https://cdn-icons-png.flaticon.com/128/2542/2542594.png"
-              alt=""
+              src="https://img.freepik.com/free-vector/programmer-working-web-development-code-engineer-programming-python-php-java-script-computer_90220-251.jpg"
+              alt="Coding"
+              className="w-full h-auto object-cover opacity-90"
             />
-            <p>USEFUL TUTORIALS</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
           </div>
-          <div>
-            <img
-              width="26px"
-              height="24px"
-              src="https://cdn-icons-png.flaticon.com/128/7789/7789533.png"
-              alt=""
+          {/* Decorative Elements */}
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl" />
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+const FeatureCard = ({ icon, title, link }) => (
+  <div className="p-6 rounded-xl bg-card border border-border/50 hover:border-primary/50 transition-all hover:shadow-lg group">
+    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+      {icon}
+    </div>
+    <h3 className="text-lg font-bold mb-2 text-foreground">{title}</h3>
+    {link ? (
+      <Link to={link} className="text-sm text-primary font-medium hover:underline inline-flex items-center">
+        Explore <FaArrowRight className="ml-1 w-3 h-3" />
+      </Link>
+    ) : (
+      <span className="text-sm text-muted-foreground">Coming Soon</span>
+    )}
+  </div>
+);
+
+const CompanyLogo = ({ src, alt, width = "96px" }) => (
+  <div className="grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all duration-300">
+    <img src={src} alt={alt} style={{ width: width, height: 'auto', maxHeight: '30px', objectFit: 'contain' }} />
+  </div>
+);
+
+const Home = () => {
+  return (
+    <div className="min-h-screen flex flex-col bg-background text-foreground font-sans">
+      <Nav />
+
+      <HeroSection />
+
+      {/* Features Section */}
+      <section className="py-20 bg-secondary/20">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-3xl font-bold mb-4">Everything you need to crack it</h2>
+            <p className="text-muted-foreground">From DSA sheets to System Design guides, we have curated everything in one place.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <FeatureCard
+              icon={<FaCode className="w-6 h-6" />}
+              title="Interview Questions"
+              link="/top-interview-questions/dsa"
             />
-            <p>FAQs</p>
+            <FeatureCard
+              icon={<FaFileAlt className="w-6 h-6" />}
+              title="DSA Sheets"
+              link="/generate-list-parameter"
+            />
+            <FeatureCard
+              icon={<FaVideo className="w-6 h-6" />}
+              title="Video Tutorials"
+              link="/resouce"
+            />
+            <FeatureCard
+              icon={<FaQuestionCircle className="w-6 h-6" />}
+              title="Mock Interviews"
+            // No link, acts as placeholder
+            />
           </div>
         </div>
-      </div>
+      </section>
 
-      <br />
-      <br />
-      <br />
-      <br />
-
-      <div class="companies">
-        <h2 className="text-4xl font-bold">Be Consistent To Place At</h2>
-        <div>
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/amazon"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/adobe"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/uber"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/atlassian"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/microsoft"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/oracle"
-            alt=""
-          />
+      {/* Companies Section */}
+      <section className="py-20 border-y border-border/50">
+        <div className="container mx-auto px-4 text-center space-y-12">
+          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60">
+            Placement Targets
+          </h2>
+          <div className="flex flex-wrap justify-center items-center gap-12 md:gap-16">
+            <CompanyLogo src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/amazon" alt="Amazon" />
+            <CompanyLogo src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/microsoft" alt="Microsoft" />
+            <CompanyLogo src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/uber" alt="Uber" />
+            <CompanyLogo src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/atlassian" alt="Atlassian" />
+            <CompanyLogo src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/adobe" alt="Adobe" />
+          </div>
+          <div className="flex flex-wrap justify-center items-center gap-12 md:gap-16">
+            <CompanyLogo src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/salesforce" alt="Salesforce" />
+            <CompanyLogo src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/oracle" alt="Oracle" />
+            <CompanyLogo src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/samsung" alt="Samsung" />
+            <CompanyLogo src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/paytm" alt="Paytm" />
+            <CompanyLogo src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/americanExpress" alt="Amex" />
+          </div>
         </div>
+      </section>
 
-        <div>
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/accenture"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/jio"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/volkswagen"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/accolite"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/nagarro"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/capgemini"
-            alt=""
-          />
-        </div>
-
-        <div>
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/samsung"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/pwc"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/bandhanBank"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/ibm"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/eleven"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/bosch_img"
-            alt=""
-          />
-        </div>
-
-        <div>
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/mercedes-benz"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/urban-company"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/deutsche_telekom"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/tcs"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/expediagroup"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/salesforce"
-            alt=""
-          />
-        </div>
-
-        <div>
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/juspay"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/siemens"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/americanExpress"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/booking"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/infoedge"
-            alt=""
-          />
-          <img
-            width="96px"
-            height="29px"
-            src="https://res.cloudinary.com/dbepo4xrw/image/upload/w_256,q_100,c_limit,f_auto/paytm"
-            alt=""
-          />
-        </div>
-      </div>
-
-      <div class="offering">
-        <h2 className="text-2xl font-bold">Our offering</h2>
-        <h1 className="mb-4 text-2xl font-bold leading-none tracking-tight text-gray-900 md:text-3xl lg:text-4xl">
-          Here is what you get at InterviewPrep
-        </h1>
-        <div class="offering-container">
-          <div class="offering-items">
-            <div class="items">
+      {/* Offerings Section */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center gap-16">
+            <div className="md:w-1/2 order-2 md:order-1 relative">
               <img
-                width="28px"
-                height="27px"
-                src="https://cdn-icons-png.flaticon.com/128/8625/8625364.png"
-                alt=""
+                src="https://img.freepik.com/free-vector/open-knowledge-concept-template-banner-flyer-with-isometric-style-vector_82472-734.jpg"
+                alt="Process"
+                className="rounded-2xl shadow-xl w-full max-w-md mx-auto"
               />
-              <p>1. Top Interview Questions on CS Core</p>
+              <div className="absolute inset-0 bg-primary/5 rounded-2xl" />
             </div>
-
-            <div class="items">
-              <img
-                width="28px"
-                height="27px"
-                src="https://cdn-icons-png.flaticon.com/128/8625/8625364.png"
-                alt=""
-              />
-              <p>2. Generate DSA Sheet based on User's Level </p>
-            </div>
-
-            <div class="items">
-              <img
-                width="28px"
-                height="27px"
-                src="https://cdn-icons-png.flaticon.com/128/8625/8625364.png"
-                alt=""
-              />
-              <p>3. Structured DSA path for Targeted Firm's</p>
-            </div>
-
-            <div class="items">
-              <img
-                width="28px"
-                height="27px"
-                src="https://cdn-icons-png.flaticon.com/128/8625/8625364.png"
-                alt=""
-              />
-              <p>4. Access All Quality Resources </p>
-            </div>
-
-            <div class="items">
-              <img
-                width="28px"
-                height="27px"
-                src="https://cdn-icons-png.flaticon.com/128/8625/8625364.png"
-                alt=""
-              />
-              <p>5. Get Regular POTD based on level </p>
+            <div className="md:w-1/2 order-1 md:order-2 space-y-6">
+              <h2 className="text-3xl font-bold">Why Choose Us?</h2>
+              <ul className="space-y-4">
+                {[
+                  "Top Interview Questions on CS Core",
+                  "Generate DSA Sheet based on your Level",
+                  "Structured DSA path for Targeted Firms",
+                  "Access High Quality Resources",
+                  "Regular POTD based on your skill"
+                ].map((item, index) => (
+                  <li key={index} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 border border-border/50">
+                    <div className="w-6 h-6 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center text-xs font-bold">
+                      ✓
+                    </div>
+                    <span className="text-foreground/90">{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
-
-          <img
-            class="side-img"
-            width="340px"
-            height="400px"
-            src="https://img.freepik.com/free-vector/open-knowledge-concept-template-banner-flyer-with-isometric-style-vector_82472-734.jpg?t=st=1711124934~exp=1711128534~hmac=c93b4fb4316de82c9de80554df10ab3eae82f4122c9f173fda38ef21f35fc34f&w=360"
-            alt=""
-          />
         </div>
-      </div>
+      </section>
 
-      <footer class="footer">
-        <ul class="social-icon">
-          <li class="social-icon__item">
-            <a class="social-icon__link" href="#">
-              <ion-icon name="logo-facebook"></ion-icon>
-            </a>
-          </li>
-          <li class="social-icon__item">
-            <a class="social-icon__link" href="#">
-              <ion-icon name="logo-twitter"></ion-icon>
-            </a>
-          </li>
-          <li class="social-icon__item">
-            <a class="social-icon__link" href="#">
-              <ion-icon name="logo-linkedin"></ion-icon>
-            </a>
-          </li>
-          <li class="social-icon__item">
-            <a class="social-icon__link" href="#">
-              <ion-icon name="logo-instagram"></ion-icon>
-            </a>
-          </li>
-        </ul>
-        <ul class="menu">
-          <li class="menu__item">
-            <a class="menu__link" href="#">
-              Home
-            </a>
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="#">
-              About
-            </a>
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="#">
-              Services
-            </a>
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="#">
-              Team
-            </a>
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="#">
-              Contact
-            </a>
-          </li>
-        </ul>
-        <p>&copy;2024 Interview Prep | All Rights Reserved</p>
-      </footer>
+      <Footer />
     </div>
   );
 };

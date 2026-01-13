@@ -1,6 +1,6 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import "./App.css";
-import Nav from "./components/Nav";
+// import Nav from "./components/Nav"; // Removed as it is used in pages individually
 import CSCoreSubjects from "./pages/CSCoreSubjects";
 import GetParametersForSheet from "./pages/GetParametersForSheet";
 import Home from "./pages/Home";
@@ -18,7 +18,7 @@ import QuestionList from "./pages/QuestionList";
 
 function App() {
   return (
-    <div className="w-full h-screen">
+    <div className="min-h-screen bg-background text-foreground font-sans antialiased">
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
