@@ -29,11 +29,14 @@ function Nav() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2 font-bold text-xl tracking-tight">
-            <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 text-primary">
-              IP
+          <Link to="/" className="flex items-center gap-3 font-bold text-2xl tracking-tight group">
+            <div className="size-10 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/25 group-hover:shadow-primary/40 transition-all duration-300 group-hover:scale-105">
+              <span className="font-bold text-base tracking-tighter">IP</span>
             </div>
-            Interview<span className="text-primary">Prep</span>
+            <div className="flex items-center gap-1">
+              <span className="text-foreground">Interview</span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500 font-extrabold tracking-wide uppercase">Prep</span>
+            </div>
           </Link>
         </div>
 
