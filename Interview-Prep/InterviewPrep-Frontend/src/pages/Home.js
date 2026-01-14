@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { FaCode, FaFileAlt, FaVideo, FaQuestionCircle, FaArrowRight } from "react-icons/fa";
 
 const HeroSection = () => (
-  <section className="relative pt-20 pb-32 overflow-hidden bg-background">
+  <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden bg-background min-h-[90vh] flex items-center">
     <div className="container mx-auto px-4 relative z-10">
       <div className="flex flex-col lg:flex-row items-center gap-12">
         <div className="lg:w-1/2 space-y-8 animate-in slide-in-from-left duration-700">
@@ -37,18 +37,18 @@ const HeroSection = () => (
             </Link>
           </div>
         </div>
-        <div className="lg:w-1/2 relative animate-in slide-in-from-right duration-700">
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border/50 bg-card/50">
+        <div className="lg:w-1/2 relative animate-in slide-in-from-right duration-700 group perspective-1000 flex justify-center">
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border/50 bg-card/50 transition-all duration-500 transform group-hover:scale-105 group-hover:shadow-primary/25 max-w-md lg:max-w-lg w-full">
             <img
               src="https://img.freepik.com/free-vector/programmer-working-web-development-code-engineer-programming-python-php-java-script-computer_90220-251.jpg"
               alt="Coding"
-              className="w-full h-auto object-cover opacity-90"
+              className="w-full h-auto object-cover opacity-90 transition-opacity duration-300 group-hover:opacity-100"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
           </div>
           {/* Decorative Elements */}
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
-          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl" />
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl transition-all duration-500 group-hover:bg-primary/30 group-hover:scale-110" />
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl transition-all duration-500 group-hover:bg-purple-500/30 group-hover:scale-110" />
         </div>
       </div>
     </div>
@@ -71,9 +71,13 @@ const FeatureCard = ({ icon, title, link }) => (
   </div>
 );
 
-const CompanyLogo = ({ src, alt, width = "96px" }) => (
-  <div className="grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all duration-300">
-    <img src={src} alt={alt} style={{ width: width, height: 'auto', maxHeight: '30px', objectFit: 'contain' }} />
+const CompanyLogo = ({ src, alt }) => (
+  <div className="bg-white p-4 rounded-xl shadow-lg border border-white/10 hover:shadow-primary/20 hover:scale-105 transition-all duration-300 w-40 h-20 flex items-center justify-center group bg-opacity-95 backdrop-blur-sm">
+    <img
+      src={src}
+      alt={alt}
+      className="max-w-full max-h-full object-contain transition-transform duration-300"
+    />
   </div>
 );
 
@@ -140,16 +144,19 @@ const Home = () => {
       </section>
 
       {/* Offerings Section */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-secondary/30">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center gap-16">
-            <div className="md:w-1/2 order-2 md:order-1 relative">
-              <img
-                src="https://img.freepik.com/free-vector/open-knowledge-concept-template-banner-flyer-with-isometric-style-vector_82472-734.jpg"
-                alt="Process"
-                className="rounded-2xl shadow-xl w-full max-w-md mx-auto"
-              />
-              <div className="absolute inset-0 bg-primary/5 rounded-2xl" />
+            <div className="md:w-1/2 order-2 md:order-1 relative group perspective-1000">
+              <div className="relative rounded-2xl overflow-hidden shadow-xl transition-all duration-500 transform group-hover:scale-105 group-hover:shadow-primary/25 max-w-md mx-auto">
+                <img
+                  src="https://img.freepik.com/free-vector/open-knowledge-concept-template-banner-flyer-with-isometric-style-vector_82472-734.jpg"
+                  alt="Process"
+                  className="w-full h-auto object-cover opacity-90 transition-opacity duration-300 group-hover:opacity-100"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent pointer-events-none" />
+              </div>
+              <div className="absolute -inset-4 bg-primary/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
             </div>
             <div className="md:w-1/2 order-1 md:order-2 space-y-6">
               <h2 className="text-3xl font-bold">Why Choose Us?</h2>
