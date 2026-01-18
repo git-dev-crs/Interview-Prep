@@ -24,12 +24,13 @@ const GetParametersForSheet = () => {
   // Stores the raw user input values for the form
   const [rawInputs, setRawInputs] = useState(Array(8).fill(""));
 
-  useEffect(() => {
-    const getRating = localStorage.getItem("rating");
-    if (getRating !== null && getRating !== "null") {
-      navigate(`/questions-list/${getRating}`);
-    }
-  }, [navigate]);
+  // Removed auto-redirect to allow users to navigate back and edit parameters
+  // useEffect(() => {
+  //   const getRating = localStorage.getItem("rating");
+  //   if (getRating !== null && getRating !== "null") {
+  //     navigate(`/questions-list/${getRating}`);
+  //   }
+  // }, [navigate]);
 
   // Rating Logic Helpers
   const getCodeChefRating = (value) => {
