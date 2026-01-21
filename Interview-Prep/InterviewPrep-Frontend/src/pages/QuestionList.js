@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import Nav from "../components/Nav";
 import { CiWarning } from "react-icons/ci";
+import { FaArrowLeft } from "react-icons/fa";
 
 const QuestionList = () => {
   const { rating } = useParams();
@@ -92,10 +93,19 @@ const QuestionList = () => {
   return (
     <>
       <Nav />
-      <div className=" max-w-4xl mx-auto">
-        <h1 className="text-[#004b3c] text-2xl font-semibold pb-6 py-8">
-          <span className="border-b-4 border-emerald-500">Questions List</span>
-        </h1>
+      <div className=" max-w-4xl mx-auto px-4">
+        <div className="py-8">
+          <Link
+            to="/generate-list-parameter"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-4"
+          >
+            <FaArrowLeft />
+            <span>Back to Parameters</span>
+          </Link>
+          <h1 className="text-[#004b3c] text-3xl font-bold">
+            <span className="border-b-4 border-emerald-500 pb-1">Questions List</span>
+          </h1>
+        </div>
         {!isLogin && (
           <div className=" bg-red-100 p-2 mb-5 flex items-center space-x-2 border border-gray-300 rounded">
             <div className="font-semibold">
@@ -107,58 +117,45 @@ const QuestionList = () => {
             </div>
           </div>
         )}
-        <div className={`flex border py-2  bg-green-200 font-semibold`}>
-          <p className=" w-20 ml-8">S. No.</p>
-          <p className=" w-96 mx-4 mr-28">Problem Name</p>
-          <p className=" w-28">Problem Link</p>
-
-          <div>
-            <p className=" w-24 ml-8">Status</p>
-          </div>
-        </div>
-        <div>
+        <div className="space-y-4">
           {isLoading ? (
-            <div>Loading....</div>
+            <div className="text-center py-12 text-muted-foreground animate-pulse">Loading personalized plan...</div>
           ) : (
-            <div>
+            <div className="grid gap-4">
               {problemList &&
                 problemList.map((item, index) => {
                   return (
                     <div
-                      className={`flex border py-2 ${
-                        index % 2 ? " bg-slate-50" : ""
-                      }`}
+                      className="group flex flex-col md:flex-row items-center gap-4 p-4 rounded-xl bg-card border border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10"
                       key={index}
                     >
-                      <p className=" w-20 ml-8">{index + 1}</p>
-                      <p className=" w-96 mx-4 mr-28">{item.name}</p>
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold">
+                        {index + 1}
+                      </div>
+
+                      <div className="flex-1 text-center md:text-left">
+                        <h3 className="font-semibold text-lg text-foreground">{item.name}</h3>
+                      </div>
+
                       <a
                         href={item.link}
-                        target="blank"
-                        className=" w-28 hover:text-blue-800"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
                       >
-                        Problem Link
+                        Solve Problem
                       </a>
 
-                      <div>
-                        {solvedQuestions.includes(item._id) ? (
-                          <input
-                            className=" w-24"
-                            type="checkbox"
-                            checked={true}
-                            onChange={() =>
-                              changeQuestionStatus("remove", item._id)
-                            }
-                          />
-                        ) : (
-                          <input
-                            className="w-24"
-                            type="checkbox"
-                            onChange={() =>
-                              changeQuestionStatus("add", item._id)
-                            }
-                          />
-                        )}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => changeQuestionStatus(solvedQuestions.includes(item._id) ? "remove" : "add", item._id)}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${solvedQuestions.includes(item._id)
+                            ? "bg-green-500/20 text-green-500 border border-green-500/50"
+                            : "bg-secondary text-muted-foreground hover:bg-primary/20 hover:text-primary"
+                            }`}
+                        >
+                          {solvedQuestions.includes(item._id) ? "✓" : "+"}
+                        </button>
                       </div>
                     </div>
                   );
