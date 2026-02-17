@@ -17,15 +17,18 @@ function Nav() {
     return (
       <Link
         to={to}
-        className={`text-sm font-medium transition-colors hover:text-primary ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
+        className={`text-sm font-medium transition-colors hover:text-primary relative group ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
       >
         {children}
+        <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
       </Link>
     )
   }
 
   return (
-    <nav className="fixed top-0 w-full z-50 border-b border-border/40 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+    <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+      {/* Impressive Gradient Divider */}
+      <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-80 shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-2">
@@ -58,13 +61,14 @@ function Nav() {
               Logout
             </button>
           ) : (
-            <div className="flex items-center gap-4">
-              <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+            <div className="flex items-center gap-6">
+              <Link to="/login" className="text-sm font-semibold text-muted-foreground hover:text-primary transition-all duration-300 relative group">
                 Log in
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
               </Link>
               <Link
                 to="/signup"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm"
+                className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white px-5 py-2.5 rounded-lg text-sm font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all duration-300 transform hover:-translate-y-0.5"
               >
                 Sign Up
               </Link>
