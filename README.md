@@ -42,32 +42,6 @@ graph TD
 
 ---
 
-## 🔄 User Flow Diagram
-
-The core functionality revolves around generating a personalized data structure and algorithm plan.
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Frontend
-    participant API
-    participant MongoDB
-
-    User->>Frontend: Fill Skill Parameters
-    Frontend->>Frontend: Calculate Skill Rating
-    Frontend->>API: POST /documents (Rating + Email)
-    API->>MongoDB: Query Questions (Rating >= X)
-    MongoDB-->>API: Return Curated List
-    API-->>Frontend: Send JSON Data
-    Frontend-->>User: Display Interactive Question List
-    User->>Frontend: Mark Question as Solved
-    Frontend->>API: POST /update-completed-questions
-    API->>MongoDB: Update User Progress
-    API-->>Frontend: Confirm Status Update
-```
-
----
-
 ## ✨ Key Features
 
 - **🚀 Personalized Plan Generator**: Intelligent algorithm to calculate your skill level and provide matching questions.
