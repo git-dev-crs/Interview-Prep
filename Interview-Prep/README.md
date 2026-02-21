@@ -1,4 +1,4 @@
-# 🎯 InterviewPrep - DSA Mastery Platform
+# 🎯 InterviewPrep - Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![React](https://img.shields.io/badge/Frontend-React-blue?logo=react)](https://reactjs.org/)
@@ -134,4 +134,3 @@ Contributions are what make the open-source community such an amazing place to l
 
 ---
 
-*Made with ❤️ by the InterviewPrep Team*
