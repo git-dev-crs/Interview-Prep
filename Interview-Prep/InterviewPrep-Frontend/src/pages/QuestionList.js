@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import Nav from "../components/Nav";
 import { CiWarning } from "react-icons/ci";
 import { FaArrowLeft } from "react-icons/fa";
+import { API_URL, authHeaders } from "../config/api";
 
 const QuestionList = () => {
   const { rating } = useParams();
@@ -22,12 +23,10 @@ const QuestionList = () => {
           email: localStorage.getItem("email"),
           rating: rating,
         };
-        const url = "http://localhost:3001/documents";
+        const url = `${API_URL}/documents`;
         const response = await fetch(url, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json", // Set the content type to JSON
-          },
+          headers: authHeaders(),
           body: JSON.stringify(data), // Convert the data object to a JSON string
         });
 
@@ -52,12 +51,10 @@ const QuestionList = () => {
           email: localStorage.getItem("email"),
           questionId: id,
         };
-        const url = "http://localhost:3001/update-completed-questions";
+        const url = `${API_URL}/update-completed-questions`;
         const response = await fetch(url, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json", // Set the content type to JSON
-          },
+          headers: authHeaders(),
           body: JSON.stringify(data), // Convert the data object to a JSON string
         });
 
@@ -74,12 +71,10 @@ const QuestionList = () => {
           email: localStorage.getItem("email"),
           questionId: id,
         };
-        const url = "http://localhost:3001/remove-completed-questions";
+        const url = `${API_URL}/remove-completed-questions`;
         const response = await fetch(url, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json", // Set the content type to JSON
-          },
+          headers: authHeaders(),
           body: JSON.stringify(data), // Convert the data object to a JSON string
         });
 
