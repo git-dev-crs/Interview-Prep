@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import Nav from "../Nav";
 import { Link, useNavigate } from "react-router-dom";
 import { FaLock, FaEnvelope, FaExclamationCircle } from "react-icons/fa";
+import { API_URL } from "../../config/api";
+import { GoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -25,7 +27,7 @@ const Login = () => {
       email,
       password,
     };
-    const url = "http://localhost:3001/login";
+    const url = `${API_URL}/login`;
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -43,11 +45,42 @@ const Login = () => {
         const result = await response.json();
         localStorage.setItem("email", result.email);
         localStorage.setItem("rating", result.rating);
+        localStorage.setItem("token", result.token);
         navigate("/");
       }
     } catch (error) {
       console.error("There was a problem with the fetch operation:", error);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const response = await fetch(`${API_URL}/google-login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken: credentialResponse.credential }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        setGetError(error);
+        throw new Error(error.message || "Google login failed");
+      }
+
+      const result = await response.json();
+      localStorage.setItem("email", result.email);
+      localStorage.setItem("rating", result.rating);
+      localStorage.setItem("token", result.token);
+      navigate("/");
+    } catch (error) {
+      console.error("Google login error:", error);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setGetError({ message: "Google Authentication failed. Please try again." });
   };
 
   return (
@@ -119,6 +152,25 @@ const Login = () => {
               Log in
             </button>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border/50" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+            </div>
+          </div>
+
+          <div className="flex justify-center w-full">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              theme="filled_dark"
+              shape="rectangular"
+              width="384px"
+            />
+          </div>
 
           <div className="mt-6 text-center text-sm">
             <span className="text-muted-foreground">Don't have an account? </span>
