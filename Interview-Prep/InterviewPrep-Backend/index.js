@@ -4,6 +4,9 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import authRoutes from "./src/routes/authRoutes.js";
 import resourceRoutes from "./src/routes/resourceRoutes.js";
+import aiAssistantRoutes from "./src/routes/aiAssistantRoutes.js";
+import mockInterviewRoutes from "./src/routes/mockInterviewRoutes.js";
+import dashboardRoutes from "./src/routes/dashboardRoutes.js";
 
 // Load environment variables
 dotenv.config();
@@ -26,6 +29,9 @@ mongoose
 // Routes
 app.use("/", authRoutes);
 app.use("/", resourceRoutes);
+app.use("/", aiAssistantRoutes);
+app.use("/", mockInterviewRoutes);
+app.use("/", dashboardRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

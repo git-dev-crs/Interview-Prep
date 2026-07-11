@@ -4,11 +4,13 @@ import {
     updateCompletedQuestions,
     removeCompletedQuestions,
 } from "../controllers/resourceController.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/documents", getDocuments);
-router.post("/update-completed-questions", updateCompletedQuestions);
-router.post("/remove-completed-questions", removeCompletedQuestions);
+// All resource routes require authentication
+router.post("/documents", authMiddleware, getDocuments);
+router.post("/update-completed-questions", authMiddleware, updateCompletedQuestions);
+router.post("/remove-completed-questions", authMiddleware, removeCompletedQuestions);
 
 export default router;
