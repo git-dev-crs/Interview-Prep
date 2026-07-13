@@ -36,7 +36,7 @@ const getScoreEmoji = (score) => {
     return "❌";
 };
 
-const ScoreCard = ({ scores, feedback, isCompact = false }) => {
+const ScoreCard = ({ scores, feedback, idealAnswer, isCompact = false }) => {
     if (!scores) return null;
 
     if (isCompact) {
@@ -66,6 +66,16 @@ const ScoreCard = ({ scores, feedback, isCompact = false }) => {
                     <p className="text-sm text-muted-foreground bg-background/50 p-3 rounded-lg border-l-2 border-primary/50 italic">
                         💡 {feedback}
                     </p>
+                )}
+                {idealAnswer && (
+                    <details className="mt-3 group">
+                        <summary className="text-sm font-semibold text-primary cursor-pointer select-none hover:underline">
+                            ✨ See a 10/10 model answer
+                        </summary>
+                        <p className="mt-2 text-sm text-muted-foreground bg-background/50 p-3 rounded-lg border-l-2 border-green-500/50 leading-relaxed">
+                            {idealAnswer}
+                        </p>
+                    </details>
                 )}
             </div>
         );
