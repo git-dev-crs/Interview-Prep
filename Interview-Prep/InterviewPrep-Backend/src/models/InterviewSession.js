@@ -10,6 +10,7 @@ const questionEntrySchema = mongoose.Schema({
         overall: { type: Number, default: 0 },
     },
     feedback: { type: String, default: "" },
+    idealAnswer: { type: String, default: "" }, // model answer shown after evaluation
     timeSpent: { type: Number, default: 0 }, // seconds spent on this question
 }, { _id: false });
 
@@ -18,6 +19,8 @@ const interviewSessionSchema = mongoose.Schema({
     role: { type: String, required: true },           // e.g., "Frontend Developer"
     experience: { type: String, required: true },      // e.g., "Fresher", "1-3 yrs"
     interviewType: { type: String, required: true },   // "Technical", "HR", "Mixed"
+    difficulty: { type: String, default: "Medium" },    // "Easy", "Medium", "Hard"
+    questionCount: { type: Number, default: 8 },        // target number of questions
     duration: { type: Number, default: 30 },           // total interview duration in minutes
     questions: [questionEntrySchema],
     overallScore: {
