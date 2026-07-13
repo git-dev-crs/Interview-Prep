@@ -4,16 +4,23 @@ import InterviewSession from "../models/InterviewSession.js";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // ─── Helper: Build the system prompt for the interview ───
-const buildInterviewSystemPrompt = (role, experience, interviewType) => {
+const buildInterviewSystemPrompt = (role, experience, interviewType, difficulty = "Medium") => {
     const typeInstructions = {
         Technical: "Focus exclusively on technical questions: coding, system design, data structures, algorithms, and domain-specific knowledge.",
         HR: "Focus on behavioral questions: teamwork, leadership, conflict resolution, motivation, strengths/weaknesses, and situational judgment.",
         Mixed: "Alternate between technical and behavioral questions for a well-rounded interview simulation.",
     };
 
+    const difficultyInstructions = {
+        Easy: "Start with fundamentals and warm-up level questions. Keep questions approachable — definitions, basic concepts, simple scenarios.",
+        Medium: "Ask standard interview-level questions comparable to mid-tier tech company screens.",
+        Hard: "Ask challenging questions comparable to top-tier tech company onsites — deep tradeoffs, edge cases, system design at scale, tricky scenarios.",
+    };
+
     return `You are a professional interview conductor for a ${role} position.
 The candidate has ${experience} of experience.
 Interview type: ${interviewType}.
+Base difficulty level: ${difficulty}. ${difficultyInstructions[difficulty] || difficultyInstructions.Medium}
 
 ${typeInstructions[interviewType] || typeInstructions.Mixed}
 
@@ -45,6 +52,7 @@ Respond in STRICT JSON format only (no markdown, no code fences, no extra text):
         "overall": <0-10>
     },
     "feedback": "<2-3 sentence constructive feedback>",
+    "idealAnswer": "<a concise model answer (3-5 sentences) that would score 10/10 for this question>",
     "nextQuestionContext": "<brief note about what to ask next based on this answer>"
 }`;
 };
@@ -92,16 +100,24 @@ const safeParseJSON = (text) => {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 export const startInterview = async (req, res) => {
     try {
-        const { email, role, experience, interviewType, duration } = req.body;
+        const { role, experience, interviewType, duration, difficulty, questionCount } = req.body;
+        // SECURITY: identity always comes from the verified JWT, never the request body
+        const email = req.userEmail;
 
-        if (!email || !role || !experience || !interviewType) {
-            return res.status(400).json({ error: "Missing required fields: email, role, experience, interviewType" });
+        if (!role || !experience || !interviewType) {
+            return res.status(400).json({ error: "Missing required fields: role, experience, interviewType" });
         }
+
+        // Validate optional settings
+        const safeDifficulty = ["Easy", "Medium", "Hard"].includes(difficulty) ? difficulty : "Medium";
+        const safeQuestionCount = Number.isInteger(questionCount) && questionCount >= 3 && questionCount <= 15
+            ? questionCount
+            : 8;
 
         // Generate the first question
         const model = genAI.getGenerativeModel({
             model: "gemini-2.0-flash",
-            systemInstruction: buildInterviewSystemPrompt(role, experience, interviewType),
+            systemInstruction: buildInterviewSystemPrompt(role, experience, interviewType, safeDifficulty),
         });
 
         const result = await model.generateContent(
@@ -115,6 +131,8 @@ export const startInterview = async (req, res) => {
             role,
             experience,
             interviewType,
+            difficulty: safeDifficulty,
+            questionCount: safeQuestionCount,
             duration: duration || 30,
             questions: [{ question: firstQuestion }],
             status: "in-progress",
@@ -125,6 +143,8 @@ export const startInterview = async (req, res) => {
         return res.status(201).json({
             sessionId: session._id,
             questionNumber: 1,
+            totalQuestions: safeQuestionCount,
+            difficulty: safeDifficulty,
             question: firstQuestion,
             message: "Interview started successfully!",
         });
@@ -150,6 +170,10 @@ export const nextQuestion = async (req, res) => {
         if (!session) {
             return res.status(404).json({ error: "Interview session not found." });
         }
+        // SECURITY: only the owner of the session can interact with it
+        if (session.userEmail !== req.userEmail) {
+            return res.status(403).json({ error: "You are not authorized to access this interview session." });
+        }
         if (session.status === "completed") {
             return res.status(400).json({ error: "This interview session is already completed." });
         }
@@ -171,12 +195,29 @@ export const nextQuestion = async (req, res) => {
         if (evaluation) {
             session.questions[currentQIndex].scores = evaluation.scores;
             session.questions[currentQIndex].feedback = evaluation.feedback;
+            session.questions[currentQIndex].idealAnswer = evaluation.idealAnswer || "";
+        }
+
+        // If this was the final question, don't generate another — signal the frontend to end
+        const targetCount = session.questionCount || 8;
+        if (session.questions.length >= targetCount) {
+            await session.save();
+            return res.status(200).json({
+                finished: true,
+                questionNumber: session.questions.length,
+                totalQuestions: targetCount,
+                previousEvaluation: evaluation ? {
+                    scores: evaluation.scores,
+                    feedback: evaluation.feedback,
+                    idealAnswer: evaluation.idealAnswer || "",
+                } : null,
+            });
         }
 
         // Step 2: Generate next question
         const interviewModel = genAI.getGenerativeModel({
             model: "gemini-2.0-flash",
-            systemInstruction: buildInterviewSystemPrompt(session.role, session.experience, session.interviewType),
+            systemInstruction: buildInterviewSystemPrompt(session.role, session.experience, session.interviewType, session.difficulty),
         });
 
         const context = session.questions.map((q, i) =>
@@ -194,15 +235,52 @@ export const nextQuestion = async (req, res) => {
 
         return res.status(200).json({
             questionNumber: session.questions.length,
+            totalQuestions: targetCount,
             question: nextQ,
             previousEvaluation: evaluation ? {
                 scores: evaluation.scores,
                 feedback: evaluation.feedback,
+                idealAnswer: evaluation.idealAnswer || "",
             } : null,
         });
     } catch (error) {
         console.error("Next Question Error:", error.message || error);
         return res.status(500).json({ error: "Failed to generate next question. Please try again." });
+    }
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// GET /api/mock-interview/active
+// Returns the user's most recent in-progress session (for resume support)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+export const getActiveSession = async (req, res) => {
+    try {
+        const session = await InterviewSession.findOne({
+            userEmail: req.userEmail,
+            status: "in-progress",
+        }).sort({ startedAt: -1 });
+
+        if (!session) {
+            return res.status(200).json({ active: false });
+        }
+
+        const lastQuestion = session.questions[session.questions.length - 1];
+        return res.status(200).json({
+            active: true,
+            sessionId: session._id,
+            role: session.role,
+            experience: session.experience,
+            interviewType: session.interviewType,
+            difficulty: session.difficulty,
+            duration: session.duration,
+            questionNumber: session.questions.length,
+            totalQuestions: session.questionCount || 8,
+            question: lastQuestion?.question || "",
+            startedAt: session.startedAt,
+        });
+    } catch (error) {
+        console.error("Active Session Error:", error.message || error);
+        return res.status(500).json({ error: "Failed to fetch active session." });
     }
 };
 
@@ -222,6 +300,10 @@ export const endInterview = async (req, res) => {
         if (!session) {
             return res.status(404).json({ error: "Interview session not found." });
         }
+        // SECURITY: only the owner of the session can end it
+        if (session.userEmail !== req.userEmail) {
+            return res.status(403).json({ error: "You are not authorized to access this interview session." });
+        }
 
         // If there's a final answer to evaluate
         if (answer) {
@@ -240,6 +322,7 @@ export const endInterview = async (req, res) => {
             if (evaluation) {
                 session.questions[currentQIndex].scores = evaluation.scores;
                 session.questions[currentQIndex].feedback = evaluation.feedback;
+                session.questions[currentQIndex].idealAnswer = evaluation.idealAnswer || "";
             }
         }
 
