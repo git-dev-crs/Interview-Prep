@@ -1,16 +1,13 @@
 import InterviewSession from "../models/InterviewSession.js";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// GET /api/dashboard/stats?email=...
+// GET /api/dashboard/stats
 // Returns aggregate stats for the logged-in user
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 export const getDashboardStats = async (req, res) => {
     try {
-        const { email } = req.query;
-
-        if (!email) {
-            return res.status(400).json({ error: "Email is required." });
-        }
+        // SECURITY: identity always comes from the verified JWT, never a query param
+        const email = req.userEmail;
 
         const sessions = await InterviewSession.find({
             userEmail: email,
@@ -95,6 +92,10 @@ export const getSessionDetail = async (req, res) => {
         const session = await InterviewSession.findById(id);
         if (!session) {
             return res.status(404).json({ error: "Session not found." });
+        }
+        // SECURITY: only the owner of the session can view its details
+        if (session.userEmail !== req.userEmail) {
+            return res.status(403).json({ error: "You are not authorized to view this session." });
         }
 
         return res.status(200).json({ session });
