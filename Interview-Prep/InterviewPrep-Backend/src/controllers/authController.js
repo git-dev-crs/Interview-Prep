@@ -13,10 +13,36 @@ const generateToken = (email) => {
     return jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
+// ─── Input validation helpers ───
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const validateSignupInput = ({ name, email, password }) => {
+    if (!name || typeof name !== "string" || name.trim().length < 2 || name.trim().length > 60) {
+        return "Please provide a valid name (2-60 characters).";
+    }
+    if (!email || typeof email !== "string" || !EMAIL_REGEX.test(email.trim())) {
+        return "Please provide a valid email address.";
+    }
+    if (!password || typeof password !== "string" || password.length < 8) {
+        return "Password must be at least 8 characters long.";
+    }
+    if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
+        return "Password must contain at least one letter and one number.";
+    }
+    return null;
+};
+
 export const signup = async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, password } = req.body;
+    const email = req.body.email?.trim().toLowerCase();
 
     try {
+        // Validate input before touching the database
+        const validationError = validateSignupInput({ name, email, password });
+        if (validationError) {
+            return res.status(400).send({ message: validationError });
+        }
+
         // Check if the user already exists
         const existingUser = await User.findOne({ email: email });
         if (existingUser) {
@@ -29,7 +55,7 @@ export const signup = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const newUser = new User({
-            name,
+            name: name.trim(),
             email,
             password: hashedPassword,
             currentRating: null,
@@ -47,18 +73,32 @@ export const signup = async (req, res) => {
             token,
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).send(error);
+        console.error("Signup Error:", error);
+        // SECURITY: never leak internal error objects to the client
+        res.status(500).send({ message: "Internal Server Error" });
     }
 };
 
 export const login = async (req, res) => {
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const email = req.body.email?.trim().toLowerCase();
     try {
+        if (!email || !password) {
+            return res.status(400).send({ message: "Email and password are required" });
+        }
+
         const user = await User.findOne({ email: email });
         if (!user) {
             res.status(400).send({ message: "User not registered" });
             return;
+        }
+
+        // SECURITY: accounts created via Google Sign-In have no password hash.
+        // Block password login for them instead of comparing against an empty hash.
+        if (!user.password) {
+            return res.status(400).send({
+                message: "This account uses Google Sign-In. Please log in with Google.",
+            });
         }
 
         // Compare password
@@ -86,6 +126,10 @@ export const login = async (req, res) => {
 export const googleLogin = async (req, res) => {
     const { idToken } = req.body;
     try {
+        if (!idToken) {
+            return res.status(400).json({ message: "Missing Google ID token" });
+        }
+
         // Verify Google token
         const ticket = await client.verifyIdToken({
             idToken: idToken,
