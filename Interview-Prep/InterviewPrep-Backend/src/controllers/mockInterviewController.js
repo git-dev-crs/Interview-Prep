@@ -1,7 +1,5 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import InterviewSession from "../models/InterviewSession.js";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+import { generateContent } from "../utils/geminiClient.js";
 
 // ─── Helper: Build the system prompt for the interview ───
 const buildInterviewSystemPrompt = (role, experience, interviewType, difficulty = "Medium") => {
@@ -114,16 +112,12 @@ export const startInterview = async (req, res) => {
             ? questionCount
             : 8;
 
-        // Generate the first question
-        const model = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash",
+        // Generate the first question (resilient client picks a working model)
+        const { text: firstQuestionText } = await generateContent({
             systemInstruction: buildInterviewSystemPrompt(role, experience, interviewType, safeDifficulty),
+            prompt: `Start the interview. Ask the first ${interviewType === "HR" ? "behavioral" : "technical"} question for a ${role} with ${experience} experience.`,
         });
-
-        const result = await model.generateContent(
-            `Start the interview. Ask the first ${interviewType === "HR" ? "behavioral" : "technical"} question for a ${role} with ${experience} experience.`
-        );
-        const firstQuestion = result.response.text().trim();
+        const firstQuestion = firstQuestionText.trim();
 
         // Create the session in DB
         const session = new InterviewSession({
@@ -150,7 +144,9 @@ export const startInterview = async (req, res) => {
         });
     } catch (error) {
         console.error("Start Interview Error:", error.message || error);
-        return res.status(500).json({ error: "Failed to start interview. Please try again." });
+        return res.status(error.httpStatus || 500).json({
+            error: error.userMessage || "Failed to start interview. Please try again.",
+        });
     }
 };
 
@@ -182,11 +178,10 @@ export const nextQuestion = async (req, res) => {
         const currentQuestion = session.questions[currentQIndex].question;
 
         // Step 1: Evaluate the answer
-        const evalModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-        const evalResult = await evalModel.generateContent(
-            buildEvaluationPrompt(session.role, session.experience, currentQuestion, answer)
-        );
-        const evaluation = safeParseJSON(evalResult.response.text());
+        const { text: evalText } = await generateContent({
+            prompt: buildEvaluationPrompt(session.role, session.experience, currentQuestion, answer),
+        });
+        const evaluation = safeParseJSON(evalText);
 
         // Update the current question with the answer and scores
         session.questions[currentQIndex].answer = answer;
@@ -215,19 +210,15 @@ export const nextQuestion = async (req, res) => {
         }
 
         // Step 2: Generate next question
-        const interviewModel = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash",
-            systemInstruction: buildInterviewSystemPrompt(session.role, session.experience, session.interviewType, session.difficulty),
-        });
-
         const context = session.questions.map((q, i) =>
             `Q${i + 1}: ${q.question}\nA${i + 1}: ${q.answer || "(not answered yet)"}`
         ).join("\n\n");
 
-        const nextResult = await interviewModel.generateContent(
-            `Here is the interview so far:\n\n${context}\n\n${evaluation?.nextQuestionContext ? `Context for next question: ${evaluation.nextQuestionContext}\n\n` : ""}Ask the next interview question. Make it progressively appropriate based on the candidate's performance so far.`
-        );
-        const nextQ = nextResult.response.text().trim();
+        const { text: nextText } = await generateContent({
+            systemInstruction: buildInterviewSystemPrompt(session.role, session.experience, session.interviewType, session.difficulty),
+            prompt: `Here is the interview so far:\n\n${context}\n\n${evaluation?.nextQuestionContext ? `Context for next question: ${evaluation.nextQuestionContext}\n\n` : ""}Ask the next interview question. Make it progressively appropriate based on the candidate's performance so far.`,
+        });
+        const nextQ = nextText.trim();
 
         // Add the new question
         session.questions.push({ question: nextQ });
@@ -245,7 +236,9 @@ export const nextQuestion = async (req, res) => {
         });
     } catch (error) {
         console.error("Next Question Error:", error.message || error);
-        return res.status(500).json({ error: "Failed to generate next question. Please try again." });
+        return res.status(error.httpStatus || 500).json({
+            error: error.userMessage || "Failed to generate next question. Please try again.",
+        });
     }
 };
 
@@ -310,11 +303,10 @@ export const endInterview = async (req, res) => {
             const currentQIndex = session.questions.length - 1;
             const currentQuestion = session.questions[currentQIndex].question;
 
-            const evalModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-            const evalResult = await evalModel.generateContent(
-                buildEvaluationPrompt(session.role, session.experience, currentQuestion, answer)
-            );
-            const evaluation = safeParseJSON(evalResult.response.text());
+            const { text: evalText } = await generateContent({
+                prompt: buildEvaluationPrompt(session.role, session.experience, currentQuestion, answer),
+            });
+            const evaluation = safeParseJSON(evalText);
 
             session.questions[currentQIndex].answer = answer;
             session.questions[currentQIndex].timeSpent = timeSpent || 0;
@@ -328,11 +320,10 @@ export const endInterview = async (req, res) => {
 
         // Generate final summary
         const answeredQuestions = session.questions.filter(q => q.answer && q.answer.trim() !== "");
-        const summaryModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-        const summaryResult = await summaryModel.generateContent(
-            buildSummaryPrompt(session.role, session.experience, answeredQuestions)
-        );
-        const summary = safeParseJSON(summaryResult.response.text());
+        const { text: summaryText } = await generateContent({
+            prompt: buildSummaryPrompt(session.role, session.experience, answeredQuestions),
+        });
+        const summary = safeParseJSON(summaryText);
 
         // Update session
         session.status = "completed";
@@ -367,6 +358,8 @@ export const endInterview = async (req, res) => {
         });
     } catch (error) {
         console.error("End Interview Error:", error.message || error);
-        return res.status(500).json({ error: "Failed to end interview. Please try again." });
+        return res.status(error.httpStatus || 500).json({
+            error: error.userMessage || "Failed to end interview. Please try again.",
+        });
     }
 };
