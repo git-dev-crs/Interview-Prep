@@ -64,6 +64,9 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Failed to connect to MongoDB", err));
 
+// ─── Health check (always reachable, even if a route module has a bug) ───
+app.get("/health", (req, res) => res.status(200).json({ status: "ok" }));
+
 // ─── Routes ───
 app.use("/", authRoutes);
 app.use("/", resourceRoutes);
