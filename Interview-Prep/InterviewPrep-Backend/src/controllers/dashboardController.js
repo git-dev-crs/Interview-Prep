@@ -66,6 +66,33 @@ export const getDashboardStats = async (req, res) => {
             role: s.role,
         }));
 
+        // Skill averages across all sessions — powers the radar chart
+        const skillTotals = { technicalAccuracy: 0, communication: 0, depth: 0 };
+        sessions.forEach(s => {
+            skillTotals.technicalAccuracy += s.overallScore.technicalAccuracy || 0;
+            skillTotals.communication += s.overallScore.communication || 0;
+            skillTotals.depth += s.overallScore.depth || 0;
+        });
+        const skillAverages = {
+            technicalAccuracy: Number((skillTotals.technicalAccuracy / sessions.length).toFixed(1)),
+            communication: Number((skillTotals.communication / sessions.length).toFixed(1)),
+            depth: Number((skillTotals.depth / sessions.length).toFixed(1)),
+        };
+
+        // Interview-type breakdown (Technical / HR / Mixed) — count + avg score
+        const typeBreakdown = {};
+        sessions.forEach(s => {
+            const key = s.interviewType || "Other";
+            if (!typeBreakdown[key]) {
+                typeBreakdown[key] = { count: 0, totalScore: 0 };
+            }
+            typeBreakdown[key].count++;
+            typeBreakdown[key].totalScore += s.overallScore.overall || 0;
+        });
+        Object.keys(typeBreakdown).forEach(key => {
+            typeBreakdown[key].avgScore = Number((typeBreakdown[key].totalScore / typeBreakdown[key].count).toFixed(1));
+        });
+
         return res.status(200).json({
             totalInterviews: sessions.length,
             avgScore: Number(avgScore.toFixed(1)),
@@ -74,6 +101,8 @@ export const getDashboardStats = async (req, res) => {
             recentSessions,
             scoreTrend,
             topicBreakdown,
+            skillAverages,
+            typeBreakdown,
         });
     } catch (error) {
         console.error("Dashboard Stats Error:", error.message || error);
@@ -102,5 +131,50 @@ export const getSessionDetail = async (req, res) => {
     } catch (error) {
         console.error("Session Detail Error:", error.message || error);
         return res.status(500).json({ error: "Failed to fetch session details." });
+    }
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DELETE /api/dashboard/session/:id
+// Permanently deletes a single interview session (owner only)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+export const deleteSession = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const session = await InterviewSession.findById(id);
+        if (!session) {
+            return res.status(404).json({ error: "Session not found." });
+        }
+        // SECURITY: only the owner of the session can delete it
+        if (session.userEmail !== req.userEmail) {
+            return res.status(403).json({ error: "You are not authorized to delete this session." });
+        }
+
+        await session.deleteOne();
+
+        return res.status(200).json({ message: "Session deleted successfully.", id });
+    } catch (error) {
+        console.error("Delete Session Error:", error.message || error);
+        return res.status(500).json({ error: "Failed to delete session." });
+    }
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DELETE /api/dashboard/sessions
+// Deletes ALL of the logged-in user's interview sessions (clear history)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+export const deleteAllSessions = async (req, res) => {
+    try {
+        // SECURITY: scoped to the authenticated user only — never touches others' data
+        const result = await InterviewSession.deleteMany({ userEmail: req.userEmail });
+
+        return res.status(200).json({
+            message: "Interview history cleared successfully.",
+            deletedCount: result.deletedCount || 0,
+        });
+    } catch (error) {
+        console.error("Clear History Error:", error.message || error);
+        return res.status(500).json({ error: "Failed to clear interview history." });
     }
 };
