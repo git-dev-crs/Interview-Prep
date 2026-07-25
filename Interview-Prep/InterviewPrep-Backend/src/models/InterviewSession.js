@@ -15,7 +15,7 @@ const questionEntrySchema = mongoose.Schema({
 }, { _id: false });
 
 const interviewSessionSchema = mongoose.Schema({
-    userEmail: { type: String, required: true },
+    userEmail: { type: String, required: true, index: true },
     role: { type: String, required: true },           // e.g., "Frontend Developer"
     experience: { type: String, required: true },      // e.g., "Fresher", "1-3 yrs"
     interviewType: { type: String, required: true },   // "Technical", "HR", "Mixed"
@@ -35,8 +35,11 @@ const interviewSessionSchema = mongoose.Schema({
     weaknesses: [String],
     recommendations: [String],
     startedAt: { type: Date, default: Date.now },
-    completedAt: { type: Date, default: null },
+    completedAt: { type: Date, default: null, index: true },
 });
+
+// Compound index — covers dashboard queries: find by user + filter by status
+interviewSessionSchema.index({ userEmail: 1, status: 1 });
 
 const InterviewSession = mongoose.model("InterviewSession", interviewSessionSchema);
 
