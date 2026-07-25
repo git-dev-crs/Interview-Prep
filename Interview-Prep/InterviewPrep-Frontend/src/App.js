@@ -7,6 +7,8 @@ import Home from "./pages/Home";
 import Resource from "./pages/Resource";
 import Login from "./components/session/Login";
 import Signup from "./components/session/Signup";
+import ForgotPassword from "./components/session/ForgotPassword";
+import ResetPassword from "./components/session/ResetPassword";
 import Cn from "./components/Top_Questions/Cn";
 import Dbms from "./components/Top_Questions/Dbms";
 import Oops from "./components/Top_Questions/Oops";
@@ -14,12 +16,15 @@ import OS from "./components/Top_Questions/OS";
 import Sql from "./components/Top_Questions/Sql";
 import Dsa from "./components/Top_Questions/Dsa";
 import QuestionList from "./pages/QuestionList";
+import DSARoadmap from "./pages/DSARoadmap";
 import AIAssistant from "./components/AIAssistant/AIAssistant";
 // ── New Feature Imports ──
 import InterviewSetup from "./pages/InterviewSetup";
 import MockInterview from "./pages/MockInterview";
 import Dashboard from "./pages/Dashboard";
 import InterviewDetail from "./pages/InterviewDetail";
+import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -29,7 +34,10 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/core-subject" element={<CSCoreSubjects />} />
+          <Route path="/dsa" element={<DSARoadmap />} />
           <Route path="/resource" element={<Resource />} />
           <Route path="/resouce" element={<Resource />} /> {/* Legacy typo redirect */}
 
@@ -46,13 +54,16 @@ function App() {
           />
           <Route path="/questions-list/:rating" element={<QuestionList />} />
 
-          {/* ── New Features: AI Mock Interview ── */}
-          <Route path="/mock-interview/setup" element={<InterviewSetup />} />
-          <Route path="/mock-interview/session" element={<MockInterview />} />
+          {/* ── New Features: AI Mock Interview (login required) ── */}
+          <Route path="/mock-interview/setup" element={<ProtectedRoute><InterviewSetup /></ProtectedRoute>} />
+          <Route path="/mock-interview/session" element={<ProtectedRoute><MockInterview /></ProtectedRoute>} />
 
-          {/* ── New Features: Dashboard & Analytics ── */}
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/dashboard/session/:id" element={<InterviewDetail />} />
+          {/* ── New Features: Dashboard & Analytics (login required) ── */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/dashboard/session/:id" element={<ProtectedRoute><InterviewDetail /></ProtectedRoute>} />
+
+          {/* Catch-all — must stay last */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
         <AIAssistant />
       </Router>
