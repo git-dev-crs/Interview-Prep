@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./AIAssistant.css";
-import { API_URL, authHeaders } from "../../config/api";
+import { API_URL, authHeaders, requestJson } from "../../config/api";
 
 // Simple markdown-like renderer for bold, code, and bullet points
 const renderMessage = (text) => {
@@ -96,20 +96,30 @@ const AIAssistant = () => {
     const userMessage = { role: "user", text: trimmed };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
+
+    // The assistant is a protected, Gemini-backed endpoint. If the user isn't
+    // logged in, prompt them to log in rather than firing a request that 401s
+    // and surfaces a misleading "couldn't connect" error.
+    if (!localStorage.getItem("token")) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: "🔒 Please **log in** to use the AI Assistant — it's free once you're signed in!",
+          isError: true,
+        },
+      ]);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/ai-assistant`, {
+      const data = await requestJson(`${API_URL}/api/ai-assistant`, {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ message: trimmed }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Unknown error");
-      }
 
       setMessages((prev) => [
         ...prev,
@@ -120,7 +130,7 @@ const AIAssistant = () => {
         ...prev,
         {
           role: "assistant",
-          text: "⚠️ Sorry, I couldn't connect to the server. Please make sure the backend is running.",
+          text: `⚠️ ${err.message || "Sorry, I couldn't connect to the server. Please make sure the backend is running."}`,
           isError: true,
         },
       ]);
