@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { BiLogOut } from "react-icons/bi";
-import { FaBars, FaTimes } from "react-icons/fa";
+import { FaBars, FaTimes, FaMoon, FaSun } from "react-icons/fa";
 
 function Nav() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
 
   const isLoggedIn = localStorage.getItem("email") !== null;
 
@@ -16,6 +17,15 @@ function Nav() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Apply the theme class to <html> and persist the choice.
+  // Tailwind darkMode:'class' → dark styles live under `.dark`; light is default.
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(prev => (prev === "dark" ? "light" : "dark"));
 
   const logout = () => {
     localStorage.removeItem("email");
@@ -34,7 +44,7 @@ function Nav() {
         className={`text-sm font-medium transition-all duration-300 hover:text-primary relative group ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
       >
         {children}
-        <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-primary to-purple-500 transition-all duration-300 rounded-full ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`} />
+        <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-primary to-orange-500 transition-all duration-300 rounded-full ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`} />
       </Link>
     );
   };
@@ -50,7 +60,7 @@ function Nav() {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3 font-bold text-2xl tracking-tight group">
           <div className="size-10 rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/30 group-hover:shadow-primary/50 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
-            style={{ background: 'linear-gradient(135deg, hsl(263.4, 70%, 50.4%), #a855f7)' }}
+            style={{ background: 'linear-gradient(135deg, hsl(24, 94%, 50%), #ea580c)' }}
           >
             <span className="font-black text-sm tracking-tighter">IP</span>
           </div>
@@ -63,7 +73,7 @@ function Nav() {
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
           <NavLink to="/core-subject">CS Core</NavLink>
-          <NavLink to="/generate-list-parameter">DSA</NavLink>
+          <NavLink to="/dsa">DSA</NavLink>
           <NavLink to="/resource">Resources</NavLink>
           <NavLink to="/mock-interview/setup">Mock Interview</NavLink>
           {isLoggedIn && <NavLink to="/dashboard">Dashboard</NavLink>}
@@ -71,6 +81,16 @@ function Nav() {
 
         {/* Desktop Auth */}
         <div className="flex items-center gap-4">
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            className="flex items-center justify-center w-10 h-10 rounded-xl glass text-muted-foreground hover:text-primary hover:scale-110 transition-all"
+          >
+            {theme === "dark" ? <FaSun className="w-4 h-4" /> : <FaMoon className="w-4 h-4" />}
+          </button>
+
           <div className="hidden md:flex items-center gap-4">
             {isLoggedIn ? (
               <button onClick={logout} className="flex items-center gap-2 text-sm font-medium text-red-400 hover:text-red-300 transition-colors group">
@@ -85,7 +105,7 @@ function Nav() {
                 </Link>
                 <Link to="/signup"
                   className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all duration-300 glow-primary hover:glow-primary-lg hover:-translate-y-0.5"
-                  style={{ background: 'linear-gradient(135deg, hsl(263.4, 70%, 50.4%), #a855f7)' }}
+                  style={{ background: 'linear-gradient(135deg, hsl(24, 94%, 50%), #ea580c)' }}
                 >
                   Sign Up
                 </Link>
@@ -110,7 +130,7 @@ function Nav() {
           <div className="container mx-auto px-4 py-6 flex flex-col gap-2">
             {[
               { to: "/core-subject", label: "CS Core Subjects" },
-              { to: "/generate-list-parameter", label: "DSA Sheet" },
+              { to: "/dsa", label: "DSA Roadmap" },
               { to: "/resource", label: "Resources" },
             ].map(({ to, label }) => (
               <Link key={to} to={to} onClick={closeMobileMenu} className="flex items-center px-4 py-3 rounded-xl hover:bg-white/5 text-foreground font-medium transition-colors">
@@ -137,7 +157,7 @@ function Nav() {
                   </Link>
                   <Link to="/signup" onClick={closeMobileMenu}
                     className="w-full text-center px-4 py-3 rounded-xl text-white font-semibold shadow-lg glow-primary"
-                    style={{ background: 'linear-gradient(135deg, hsl(263.4, 70%, 50.4%), #a855f7)' }}
+                    style={{ background: 'linear-gradient(135deg, hsl(24, 94%, 50%), #ea580c)' }}
                   >
                     Sign Up
                   </Link>

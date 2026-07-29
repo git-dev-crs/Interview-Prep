@@ -17,7 +17,7 @@ const Footer = () => {
                     <div className="md:col-span-1 space-y-4">
                         <Link to="/" className="flex items-center gap-3 font-bold text-xl group">
                             <div className="size-9 rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20"
-                                style={{ background: 'linear-gradient(135deg, hsl(263.4, 70%, 50.4%), #a855f7)' }}
+                                style={{ background: 'linear-gradient(135deg, hsl(24, 94%, 50%), #ea580c)' }}
                             >
                                 <span className="font-black text-xs">IP</span>
                             </div>

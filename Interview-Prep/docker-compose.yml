@@ -1,0 +1,49 @@
+# ─── Production Compose (MongoDB Atlas) ───────────────────────────────────────
+# Usage:
+#   docker compose up --build          ← build & start both containers
+#   docker compose up -d               ← start in background
+#   docker compose down                ← stop & remove containers
+#   docker compose logs -f             ← stream live logs
+#
+# Dev (hot-reload) mode:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# Offline mode (local MongoDB instead of Atlas):
+#   docker compose -f docker-compose.yml -f docker-compose.mongo.yml up
+
+services:
+  backend:
+    build:
+      context: ./InterviewPrep-Backend
+      dockerfile: Dockerfile
+    container_name: interviewprep-backend
+    restart: always
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./InterviewPrep-Backend/.env
+    environment:
+      - CLIENT_URL=http://localhost:3000
+    # ── Healthcheck: poll /health every 10s; mark healthy after 1 pass ──────
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./InterviewPrep-Frontend
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: http://localhost:3001
+        REACT_APP_GOOGLE_CLIENT_ID: 371283905078-lkko9r76h4kfo4ftockjatvmff80fs2u.apps.googleusercontent.com
+    container_name: interviewprep-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    # ── Wait until backend passes its healthcheck before starting ────────────
+    depends_on:
+      backend:
+        condition: service_healthy

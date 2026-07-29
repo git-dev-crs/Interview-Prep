@@ -108,7 +108,7 @@ const CSCoreSubjects = () => {
             image: "https://images.unsplash.com/photo-1607799279861-4dd421887fb3?q=80&w=2070&auto=format&fit=crop",
             link: "/top-interview-questions/oops",
             icon: <FaLaptopCode className="w-5 h-5" />,
-            gradient: "#a855f7, #7c3aed",
+            gradient: "#ea580c, #7c3aed",
         },
         {
             title: "DS & Algo",
@@ -135,7 +135,7 @@ const CSCoreSubjects = () => {
                 {/* Background effects */}
                 <div className="absolute inset-0 bg-grid-pattern opacity-20" />
                 <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl pointer-events-none animate-float-slow" />
-                <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/8 rounded-full blur-3xl pointer-events-none animate-float-reverse" />
+                <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-500/8 rounded-full blur-3xl pointer-events-none animate-float-reverse" />
 
                 <div className="container mx-auto px-4 relative z-10">
                     <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">

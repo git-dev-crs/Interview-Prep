@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Nav from "../components/Nav";
 import Footer from "../components/Footer";
-import { API_URL, authHeaders } from "../config/api";
+import { API_URL, authHeaders, requestJson } from "../config/api";
 import {
     FaLaptopCode, FaServer, FaLayerGroup, FaDatabase, FaCloud, FaBrain,
     FaPaintBrush, FaMobileAlt, FaArrowRight, FaClock, FaUserTie, FaCogs, FaRandom
@@ -39,12 +39,27 @@ const DURATIONS = [
     { value: 60, label: "60 min", desc: "Full length" },
 ];
 
+const DIFFICULTIES = [
+    { id: "Easy", label: "Easy", emoji: "🌱", desc: "Fundamentals & warm-ups" },
+    { id: "Medium", label: "Medium", emoji: "⚡", desc: "Standard interview level" },
+    { id: "Hard", label: "Hard", emoji: "🔥", desc: "Top-tier company level" },
+];
+
+const QUESTION_COUNTS = [
+    { value: 5, label: "5", desc: "Short" },
+    { value: 8, label: "8", desc: "Standard" },
+    { value: 10, label: "10", desc: "Thorough" },
+    { value: 12, label: "12", desc: "Marathon" },
+];
+
 const InterviewSetup = () => {
     const navigate = useNavigate();
     const [selectedRole, setSelectedRole] = useState(null);
     const [selectedExperience, setSelectedExperience] = useState(null);
     const [selectedType, setSelectedType] = useState(null);
     const [selectedDuration, setSelectedDuration] = useState(30);
+    const [selectedDifficulty, setSelectedDifficulty] = useState("Medium");
+    const [selectedQuestionCount, setSelectedQuestionCount] = useState(8);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -65,20 +80,18 @@ const InterviewSetup = () => {
 
         try {
             const roleLabel = ROLES.find(r => r.id === selectedRole)?.label || selectedRole;
-            const response = await fetch(`${API_URL}/api/mock-interview/start`, {
+            const data = await requestJson(`${API_URL}/api/mock-interview/start`, {
                 method: "POST",
                 headers: authHeaders(),
                 body: JSON.stringify({
-                    email,
                     role: roleLabel,
                     experience: selectedExperience,
                     interviewType: selectedType,
                     duration: selectedDuration,
+                    difficulty: selectedDifficulty,
+                    questionCount: selectedQuestionCount,
                 }),
             });
-
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || "Failed to start interview");
 
             // Navigate to the interview session with session data
             navigate("/mock-interview/session", {
@@ -86,9 +99,11 @@ const InterviewSetup = () => {
                     sessionId: data.sessionId,
                     question: data.question,
                     questionNumber: data.questionNumber,
+                    totalQuestions: data.totalQuestions || selectedQuestionCount,
                     role: roleLabel,
                     experience: selectedExperience,
                     interviewType: selectedType,
+                    difficulty: selectedDifficulty,
                     duration: selectedDuration,
                 },
             });
@@ -111,7 +126,7 @@ const InterviewSetup = () => {
                         </div>
                         <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
                             Practice Interviews with{" "}
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-500">
                                 AI Intelligence
                             </span>
                         </h1>
@@ -226,6 +241,57 @@ const InterviewSetup = () => {
                         </div>
                     </div>
 
+                    {/* Step 5: Difficulty */}
+                    <div className="mb-10">
+                        <div className="flex items-center gap-3 mb-5">
+                            <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-bold">5</div>
+                            <h2 className="text-xl font-bold text-foreground">Difficulty Level</h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {DIFFICULTIES.map(diff => (
+                                <button
+                                    key={diff.id}
+                                    onClick={() => setSelectedDifficulty(diff.id)}
+                                    className={`p-5 rounded-xl border text-left transition-all duration-200 hover:scale-[1.02] ${selectedDifficulty === diff.id
+                                        ? "border-primary bg-primary/10 shadow-lg shadow-primary/20"
+                                        : "border-border/50 bg-card hover:border-primary/50"
+                                        }`}
+                                >
+                                    <div className="text-2xl mb-3">{diff.emoji}</div>
+                                    <div className={`font-bold ${selectedDifficulty === diff.id ? "text-primary" : "text-foreground"}`}>
+                                        {diff.label}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground mt-1">{diff.desc}</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Step 6: Number of Questions */}
+                    <div className="mb-12">
+                        <div className="flex items-center gap-3 mb-5">
+                            <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-bold">6</div>
+                            <h2 className="text-xl font-bold text-foreground">Number of Questions</h2>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {QUESTION_COUNTS.map(qc => (
+                                <button
+                                    key={qc.value}
+                                    onClick={() => setSelectedQuestionCount(qc.value)}
+                                    className={`p-4 rounded-xl border text-center transition-all duration-200 hover:scale-[1.02] ${selectedQuestionCount === qc.value
+                                        ? "border-primary bg-primary/10 shadow-lg shadow-primary/20"
+                                        : "border-border/50 bg-card hover:border-primary/50"
+                                        }`}
+                                >
+                                    <div className={`text-lg font-bold ${selectedQuestionCount === qc.value ? "text-primary" : "text-foreground"}`}>
+                                        {qc.label} questions
+                                    </div>
+                                    <div className="text-xs text-muted-foreground mt-1">{qc.desc}</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* Error */}
                     {error && (
                         <div className="mb-6 p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm text-center">
@@ -239,7 +305,7 @@ const InterviewSetup = () => {
                             onClick={handleStart}
                             disabled={!canStart || isLoading}
                             className={`inline-flex items-center justify-center px-10 py-4 rounded-xl text-lg font-bold shadow-lg transition-all duration-300 transform ${canStart && !isLoading
-                                ? "bg-gradient-to-r from-primary to-purple-600 text-primary-foreground shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] hover:-translate-y-0.5"
+                                ? "bg-gradient-to-r from-primary to-orange-600 text-primary-foreground shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] hover:-translate-y-0.5"
                                 : "bg-muted text-muted-foreground cursor-not-allowed"
                                 }`}
                         >

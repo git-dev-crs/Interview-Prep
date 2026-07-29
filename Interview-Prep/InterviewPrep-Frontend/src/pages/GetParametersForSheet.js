@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Nav from "../components/Nav";
 import Footer from "../components/Footer";
@@ -97,7 +97,7 @@ const GetParametersForSheet = () => {
       <div className="flex-1 py-32 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500 mb-4">
+            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-orange-500 mb-4">
               Personalized DSA Plan
             </h1>
             <p className="text-muted-foreground text-lg">
@@ -131,7 +131,7 @@ const GetParametersForSheet = () => {
             <div className="pt-8">
               <button
                 type="submit"
-                className="w-full md:w-auto md:px-12 mx-auto block py-4 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-primary-foreground font-bold text-lg shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300"
+                className="w-full md:w-auto md:px-12 mx-auto block py-4 rounded-xl bg-gradient-to-r from-primary to-orange-600 text-primary-foreground font-bold text-lg shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300"
               >
                 Generate My Plan 🚀
               </button>

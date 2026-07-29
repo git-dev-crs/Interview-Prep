@@ -1,0 +1,43 @@
+# ─── Offline Mode: Local MongoDB Container ────────────────────────────────────
+# Swaps MongoDB Atlas (cloud) with a local MongoDB container.
+# Useful when you have no internet access or want a fresh isolated DB.
+#
+# Usage (from the project root):
+#   docker compose -f docker-compose.yml -f docker-compose.mongo.yml up --build
+#
+# Your data is persisted in a named Docker volume (mongo_data) — it survives
+# container restarts. To wipe it and start fresh:
+#   docker compose -f docker-compose.yml -f docker-compose.mongo.yml down -v
+
+services:
+  # ── Local MongoDB service ───────────────────────────────────────────────────
+  mongo:
+    image: mongo:7-jammy
+    container_name: interviewprep-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      # Named volume — data persists across container restarts
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: interviewprep
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ── Override backend to use local Mongo instead of Atlas ───────────────────
+  backend:
+    environment:
+      # Point MONGO_URI at the local mongo container (service name = hostname)
+      - MONGO_URI=mongodb://mongo:27017/interviewprep
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  # Named volume for MongoDB data persistence
+  mongo_data:

@@ -110,7 +110,7 @@ const StatCounter = ({ value, label, suffix = "" }) => {
 const HeroSection = () => (
     <section className="relative pt-32 pb-24 lg:pt-44 lg:pb-36 overflow-hidden bg-mesh-hero min-h-[95vh] flex items-center">
         {/* Background Elements */}
-        <FloatingOrb size="400px" color="rgba(139, 92, 246, 0.2)" top="-100px" left="-100px" delay={0} />
+        <FloatingOrb size="400px" color="rgba(249, 115, 22, 0.2)" top="-100px" left="-100px" delay={0} />
         <FloatingOrb size="300px" color="rgba(168, 85, 247, 0.15)" top="60%" left="70%" delay={2} />
         <FloatingOrb size="200px" color="rgba(99, 102, 241, 0.12)" top="30%" left="50%" delay={4} />
 
@@ -139,7 +139,7 @@ const HeroSection = () => (
                         ,<br />
                         Enabling{" "}
                         <span className="relative inline-block">
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-primary">
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-pink-400 to-primary">
                                 Dreams
                             </span>
                             <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary to-pink-500 rounded-full opacity-60" />
@@ -154,13 +154,13 @@ const HeroSection = () => (
                         <Link
                             to="/generate-list-parameter"
                             className="group inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white rounded-xl transition-all duration-300 relative overflow-hidden glow-primary hover:glow-primary-lg"
-                            style={{ background: 'linear-gradient(135deg, hsl(263.4, 70%, 50.4%), #a855f7)' }}
+                            style={{ background: 'linear-gradient(135deg, hsl(24, 94%, 50%), #ea580c)' }}
                         >
                             <span className="relative z-10 flex items-center">
                                 Explore DSA
                                 <FaArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
                             </span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-primary to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         </Link>
                         <Link
                             to="/mock-interview/setup"
@@ -192,7 +192,7 @@ const HeroSection = () => (
 
                     {/* Background 3D layers */}
                     <div className="absolute top-8 -right-4 w-full h-full rounded-2xl bg-primary/10 border border-primary/10 -z-10 transform rotate-3 scale-95" />
-                    <div className="absolute top-16 -right-8 w-full h-full rounded-2xl bg-purple-500/5 border border-purple-500/10 -z-20 transform rotate-6 scale-90" />
+                    <div className="absolute top-16 -right-8 w-full h-full rounded-2xl bg-orange-500/5 border border-orange-500/10 -z-20 transform rotate-6 scale-90" />
                 </div>
             </div>
         </div>
@@ -211,7 +211,7 @@ const FeatureCard = ({ icon, title, description, link, gradient, index }) => (
 
                 <div
                     className="w-14 h-14 rounded-xl flex items-center justify-center text-white mb-5 shadow-lg group-hover:scale-110 transition-transform duration-300"
-                    style={{ background: `linear-gradient(135deg, ${gradient === 'bg-blue-500' ? '#3b82f6, #2563eb' : gradient === 'bg-purple-500' ? '#a855f7, #7c3aed' : gradient === 'bg-emerald-500' ? '#10b981, #059669' : '#f59e0b, #d97706'})`, transform: 'translateZ(20px)' }}
+                    style={{ background: `linear-gradient(135deg, ${gradient === 'bg-blue-500' ? '#3b82f6, #2563eb' : gradient === 'bg-orange-500' ? '#ea580c, #7c3aed' : gradient === 'bg-emerald-500' ? '#10b981, #059669' : '#f59e0b, #d97706'})`, transform: 'translateZ(20px)' }}
                 >
                     {icon}
                 </div>
@@ -242,7 +242,7 @@ const CompanyLogo = ({ src, alt }) => (
             <img
                 src={src}
                 alt={alt}
-                className="max-w-full max-h-full object-contain transition-all duration-300 brightness-0 invert opacity-50 group-hover:opacity-100 group-hover:brightness-100 group-hover:invert-0"
+                className="max-w-full max-h-full object-contain transition-all duration-300 brightness-0 invert [.light_&]:invert-0 opacity-50 group-hover:opacity-100 group-hover:brightness-100 group-hover:invert-0"
             />
         </div>
     </Tilt3DCard>
@@ -290,7 +290,7 @@ const Home = () => {
 
             {/* Features Section */}
             <section className="py-24 bg-mesh-section relative overflow-hidden">
-                <FloatingOrb size="250px" color="rgba(139, 92, 246, 0.1)" top="20%" left="5%" delay={1} />
+                <FloatingOrb size="250px" color="rgba(249, 115, 22, 0.1)" top="20%" left="5%" delay={1} />
                 <div className="container mx-auto px-4 relative z-10">
                     <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
                         <div className="inline-flex items-center px-3 py-1 rounded-full glass text-primary text-xs font-semibold uppercase tracking-wider">
@@ -318,7 +318,7 @@ const Home = () => {
                             title="DSA Sheets"
                             description="Structured problem sets based on your skill level."
                             link="/generate-list-parameter"
-                            gradient="bg-purple-500"
+                            gradient="bg-orange-500"
                             index={1}
                         />
                         <FeatureCard
@@ -425,7 +425,7 @@ const Home = () => {
 
             {/* CTA Section */}
             <section className="py-24 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-purple-600/10" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-orange-600/10" />
                 <div className="absolute inset-0 bg-grid-pattern opacity-30" />
                 <div className="container mx-auto px-4 relative z-10 text-center">
                     <Tilt3DCard intensity={4}>
@@ -441,7 +441,7 @@ const Home = () => {
                                 <Link
                                     to="/mock-interview/setup"
                                     className="group inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white rounded-xl transition-all duration-300 glow-primary hover:glow-primary-lg"
-                                    style={{ background: 'linear-gradient(135deg, hsl(263.4, 70%, 50.4%), #a855f7)' }}
+                                    style={{ background: 'linear-gradient(135deg, hsl(24, 94%, 50%), #ea580c)' }}
                                 >
                                     Start Mock Interview
                                     <FaArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />

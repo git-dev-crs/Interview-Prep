@@ -1,0 +1,19 @@
+# Dev Dockerfile for InterviewPrep Frontend
+# Used ONLY with docker-compose.dev.yml — serves via CRA hot-reload dev server
+# NOT used in production (production uses the main Dockerfile with Nginx)
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install dependencies first (cached layer — only re-runs if package.json changes)
+COPY package*.json ./
+RUN npm ci
+
+# Copy source (volume mount in dev mode will override this at runtime)
+COPY . .
+
+# CRA dev server port
+EXPOSE 3000
+
+# Start CRA's hot-reloading dev server
+CMD ["npm", "start"]

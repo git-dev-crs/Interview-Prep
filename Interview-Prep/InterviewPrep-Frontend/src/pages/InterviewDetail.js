@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import Nav from "../components/Nav";
 import Footer from "../components/Footer";
 import ScoreCard from "../components/MockInterview/ScoreCard";
-import { FaArrowLeft, FaDownload, FaCalendarAlt, FaClock, FaUserTie, FaArrowRight } from "react-icons/fa";
-import { API_URL, authHeaders } from "../config/api";
+import ConfirmModal from "../components/ConfirmModal";
+import { FaArrowLeft, FaDownload, FaCalendarAlt, FaClock, FaUserTie, FaArrowRight, FaTrashAlt } from "react-icons/fa";
+import { API_URL, authHeaders, requestJson } from "../config/api";
+import { downloadInterviewReport } from "../utils/generateReport";
 
 const getScoreColor = (score) => {
     if (score >= 7) return "text-green-400";
@@ -14,18 +16,19 @@ const getScoreColor = (score) => {
 
 const InterviewDetail = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [session, setSession] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         const fetchSession = async () => {
             try {
-                const response = await fetch(`${API_URL}/api/dashboard/session/${id}`, {
+                const data = await requestJson(`${API_URL}/api/dashboard/session/${id}`, {
                     headers: authHeaders(),
                 });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error);
                 setSession(data.session);
             } catch (err) {
                 setError(err.message);
@@ -36,120 +39,23 @@ const InterviewDetail = () => {
         fetchSession();
     }, [id]);
 
-    const handleDownloadPDF = () => {
-        // Use browser print as a simple PDF export approach
-        const printContent = document.getElementById("interview-report");
-        if (!printContent) return;
+    const handleDownloadPDF = () => downloadInterviewReport(session);
 
-        const printWindow = window.open("", "_blank");
-        printWindow.document.write(`
-            <html>
-                <head>
-                    <title>Interview Report - ${session.role}</title>
-                    <style>
-                        * { margin: 0; padding: 0; box-sizing: border-box; }
-                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #1a1a2e; line-height: 1.6; }
-                        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #6366f1; padding-bottom: 20px; }
-                        .header h1 { font-size: 28px; color: #6366f1; margin-bottom: 8px; }
-                        .header p { color: #666; font-size: 14px; }
-                        .meta { display: flex; gap: 20px; justify-content: center; margin: 15px 0; flex-wrap: wrap; }
-                        .meta span { background: #f0f0ff; padding: 4px 12px; border-radius: 6px; font-size: 13px; }
-                        .section { margin-bottom: 25px; }
-                        .section h2 { font-size: 18px; color: #6366f1; margin-bottom: 12px; border-left: 3px solid #6366f1; padding-left: 12px; }
-                        .scores { display: flex; gap: 20px; justify-content: center; margin: 20px 0; }
-                        .score-item { text-align: center; padding: 15px 20px; border-radius: 10px; background: #f8f8ff; border: 1px solid #e0e0ff; }
-                        .score-item .value { font-size: 28px; font-weight: 700; color: #6366f1; }
-                        .score-item .label { font-size: 12px; color: #666; margin-top: 4px; }
-                        .qa-item { padding: 15px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #e0e0e0; }
-                        .qa-item .q-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
-                        .qa-item .question { font-weight: 600; color: #1a1a2e; margin-bottom: 8px; }
-                        .qa-item .answer { color: #555; font-size: 14px; background: #f9f9f9; padding: 10px; border-radius: 6px; }
-                        .qa-item .feedback { font-size: 13px; color: #6366f1; margin-top: 8px; font-style: italic; }
-                        .tags { display: flex; gap: 10px; flex-wrap: wrap; }
-                        .tag { padding: 6px 14px; border-radius: 6px; font-size: 13px; }
-                        .tag-green { background: #e8f5e9; color: #2e7d32; }
-                        .tag-yellow { background: #fff8e1; color: #f57f17; }
-                        .tag-blue { background: #e3f2fd; color: #1565c0; }
-                        @media print { body { padding: 20px; } }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1>🎯 Interview Performance Report</h1>
-                        <p>InterviewPrep - AI Mock Interview Platform</p>
-                        <div class="meta">
-                            <span>📋 ${session.role}</span>
-                            <span>📊 ${session.interviewType} Mode</span>
-                            <span>🎓 ${session.experience}</span>
-                            <span>📅 ${new Date(session.completedAt).toLocaleDateString()}</span>
-                        </div>
-                    </div>
-
-                    <div class="section">
-                        <h2>Overall Performance</h2>
-                        <div class="scores">
-                            <div class="score-item">
-                                <div class="value">${session.overallScore?.overall || 0}</div>
-                                <div class="label">Overall</div>
-                            </div>
-                            <div class="score-item">
-                                <div class="value">${session.overallScore?.technicalAccuracy || 0}</div>
-                                <div class="label">Technical</div>
-                            </div>
-                            <div class="score-item">
-                                <div class="value">${session.overallScore?.communication || 0}</div>
-                                <div class="label">Communication</div>
-                            </div>
-                            <div class="score-item">
-                                <div class="value">${session.overallScore?.depth || 0}</div>
-                                <div class="label">Depth</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    ${session.strengths?.length ? `
-                    <div class="section">
-                        <h2>💪 Strengths</h2>
-                        <div class="tags">${session.strengths.map(s => `<span class="tag tag-green">✓ ${s}</span>`).join("")}</div>
-                    </div>` : ""}
-
-                    ${session.weaknesses?.length ? `
-                    <div class="section">
-                        <h2>🔧 Areas to Improve</h2>
-                        <div class="tags">${session.weaknesses.map(w => `<span class="tag tag-yellow">• ${w}</span>`).join("")}</div>
-                    </div>` : ""}
-
-                    ${session.recommendations?.length ? `
-                    <div class="section">
-                        <h2>📋 Recommendations</h2>
-                        <div class="tags">${session.recommendations.map((r, i) => `<span class="tag tag-blue">${i + 1}. ${r}</span>`).join("")}</div>
-                    </div>` : ""}
-
-                    <div class="section">
-                        <h2>📝 Question-by-Question Review</h2>
-                        ${session.questions?.filter(q => q.answer).map((q, i) => `
-                        <div class="qa-item">
-                            <div class="q-header">
-                                <strong>Question ${i + 1}</strong>
-                                <span style="color: ${q.scores.overall >= 7 ? '#2e7d32' : q.scores.overall >= 4 ? '#f57f17' : '#c62828'}; font-weight: 700;">
-                                    ${q.scores.overall}/10
-                                </span>
-                            </div>
-                            <div class="question">${q.question}</div>
-                            <div class="answer">${q.answer}</div>
-                            ${q.feedback ? `<div class="feedback">💡 ${q.feedback}</div>` : ""}
-                        </div>`).join("") || "<p>No answered questions.</p>"}
-                    </div>
-
-                    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 12px;">
-                        Generated by InterviewPrep • ${new Date().toLocaleDateString()}
-                    </div>
-                </body>
-            </html>
-        `);
-        printWindow.document.close();
-        printWindow.focus();
-        setTimeout(() => printWindow.print(), 500);
+    // Delete this report, then return to the dashboard.
+    const handleDelete = async () => {
+        setIsDeleting(true);
+        setError(null);
+        try {
+            await requestJson(`${API_URL}/api/dashboard/session/${id}`, {
+                method: "DELETE",
+                headers: authHeaders(),
+            });
+            navigate("/dashboard");
+        } catch (err) {
+            setError(err.message);
+            setIsDeleting(false);
+            setShowDeleteConfirm(false);
+        }
     };
 
     if (isLoading) {
@@ -192,12 +98,20 @@ const InterviewDetail = () => {
                         >
                             <FaArrowLeft /> Back to Dashboard
                         </Link>
-                        <button
-                            onClick={handleDownloadPDF}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary border border-primary/20 font-medium text-sm hover:bg-primary/20 transition-all"
-                        >
-                            <FaDownload /> Download PDF Report
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={handleDownloadPDF}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary border border-primary/20 font-medium text-sm hover:bg-primary/20 transition-all"
+                            >
+                                <FaDownload /> Download PDF Report
+                            </button>
+                            <button
+                                onClick={() => setShowDeleteConfirm(true)}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 font-medium text-sm hover:bg-red-500/20 transition-all"
+                            >
+                                <FaTrashAlt /> Delete
+                            </button>
+                        </div>
                     </div>
 
                     {/* Header */}
@@ -313,7 +227,7 @@ const InterviewDetail = () => {
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
                             to="/mock-interview/setup"
-                            className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-primary-foreground font-semibold shadow-lg hover:scale-[1.02] transition-all"
+                            className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-orange-600 text-primary-foreground font-semibold shadow-lg hover:scale-[1.02] transition-all"
                         >
                             Start New Interview <FaArrowRight className="ml-2" />
                         </Link>
@@ -326,6 +240,17 @@ const InterviewDetail = () => {
                     </div>
                 </div>
             </div>
+
+            <ConfirmModal
+                open={showDeleteConfirm}
+                isLoading={isDeleting}
+                title="Delete this report?"
+                message={`This permanently deletes your ${session.role} interview report. This cannot be undone.`}
+                confirmLabel="Delete"
+                onConfirm={handleDelete}
+                onCancel={() => !isDeleting && setShowDeleteConfirm(false)}
+            />
+
             <Footer />
         </div>
     );

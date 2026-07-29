@@ -712,6 +712,7 @@ function OS() {
             There are basically four sections in the process as given below:
           </p>
           <img
+            alt="Diagram showing the stack, heap, data, and code sections of a process"
             style={imgtag}
             src="https://s3.ap-south-1.amazonaws.com/myinterviewtrainer-domestic/public_assets/assets/000/000/155/original/OS_Process.png?1615554162"
             height={430}
@@ -763,6 +764,7 @@ function OS() {
             reduce data loss.{" "}
           </p>
           <img
+            alt="Illustration of the different RAID configuration levels"
             style={imgtag}
             src="https://s3.ap-south-1.amazonaws.com/myinterviewtrainer-domestic/public_assets/assets/000/000/139/original/RAID_Level.png?1615545501"
             width={420}

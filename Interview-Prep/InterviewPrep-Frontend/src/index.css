@@ -4,29 +4,76 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DESIGN TOKENS
+   Light-first (default), clean dark under .dark.
+   Accent: TUF-style orange. Neutrals: slate scale.
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 6%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 263.4 70% 50.4%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --radius: 0.5rem;
-    --glow-primary: 263.4 70% 50.4%;
+    /* Light theme (default) */
+    --background: 210 20% 98%;      /* page: near-white slate */
+    --foreground: 222 47% 11%;      /* slate-900 text */
+    --card: 0 0% 100%;              /* white cards */
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 24 94% 50%;          /* orange-500/600 (#F97316-ish) */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96%;       /* slate-100 */
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%; /* slate-500 */
+    --accent: 24 100% 96%;          /* soft orange tint for subtle highlights */
+    --accent-foreground: 24 94% 40%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;          /* slate-200 */
+    --input: 214 32% 91%;
+    --ring: 24 94% 50%;             /* focus ring = accent */
+
+    --radius: 0.625rem;             /* 10px */
+
+    /* Elevation shadows (neutral, soft — no neon glow) */
+    --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.06);
+    --shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.05);
+    --shadow-lg: 0 12px 28px -8px rgb(15 23 42 / 0.12), 0 4px 10px -4px rgb(15 23 42 / 0.06);
+  }
+
+  .dark {
+    /* Clean dark theme (Linear/Vercel-like, no neon) */
+    --background: 222 38% 8%;       /* deep slate */
+    --foreground: 210 40% 98%;
+    --card: 222 33% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 33% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 24 94% 53%;          /* slightly brighter orange on dark */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 222 20% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 222 20% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 24 40% 18%;           /* muted orange tint */
+    --accent-foreground: 24 90% 70%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 222 18% 22%;
+    --input: 222 18% 22%;
+    --ring: 24 94% 53%;
+
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+    --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.45), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 12px 28px -8px rgb(0 0 0 / 0.55), 0 4px 10px -4px rgb(0 0 0 / 0.35);
   }
 }
 
@@ -39,215 +86,132 @@
     @apply bg-background text-foreground;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
+
+  /* Quiet, weight-based type hierarchy */
+  h1 { letter-spacing: -0.02em; }
+  h2, h3 { letter-spacing: -0.01em; }
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   3D & GLASSMORPHISM UTILITY CLASSES
+   UTILITY CLASSES
+   These names are kept (many components use them) but redefined
+   to CLEAN, flat equivalents — no glassmorphism/glow/3D-tilt.
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 @layer utilities {
-  /* 3D Perspective Container */
-  .perspective-1000 {
-    perspective: 1000px;
-  }
-  .perspective-1500 {
-    perspective: 1500px;
-  }
+  /* Elevation helpers */
+  .shadow-card { box-shadow: var(--shadow-sm); }
+  .shadow-card-md { box-shadow: var(--shadow-md); }
+  .shadow-card-lg { box-shadow: var(--shadow-lg); }
 
-  /* 3D Card - Tilts on hover */
-  .card-3d {
-    transform-style: preserve-3d;
-    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1),
-                box-shadow 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-  }
-  .card-3d:hover {
-    transform: rotateY(-5deg) rotateX(5deg) translateZ(20px);
-    box-shadow: 20px 20px 60px rgba(0, 0, 0, 0.4),
-                -2px -2px 10px rgba(139, 92, 246, 0.15);
-  }
+  /* Perspective containers → no-ops now (kept so classNames don't break) */
+  .perspective-1000, .perspective-1500 { perspective: none; }
 
-  /* 3D Float Up */
+  /* "3D" cards → subtle, professional hover lift (no rotation) */
+  .card-3d,
   .card-3d-up {
-    transform-style: preserve-3d;
-    transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1),
-                box-shadow 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   }
+  .card-3d:hover,
   .card-3d-up:hover {
-    transform: translateY(-12px) translateZ(30px) rotateX(2deg);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
-                0 0 30px rgba(139, 92, 246, 0.1);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
   }
 
-  /* Glassmorphism */
+  /* "Glass" → clean translucent surface with a real border (used by Nav) */
   .glass {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: hsl(var(--card) / 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border));
   }
   .glass-strong {
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(24px) saturate(200%);
-    -webkit-backdrop-filter: blur(24px) saturate(200%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: hsl(var(--card) / 0.9);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid hsl(var(--border));
   }
 
-  /* Glow effects */
-  .glow-primary {
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3),
-                0 0 60px rgba(139, 92, 246, 0.1);
-  }
-  .glow-primary-lg {
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.4),
-                0 0 80px rgba(139, 92, 246, 0.15),
-                0 0 120px rgba(139, 92, 246, 0.05);
-  }
+  /* "Glow" → soft neutral elevation, not neon */
+  .glow-primary { box-shadow: var(--shadow-md); }
+  .glow-primary-lg { box-shadow: var(--shadow-lg); }
 
-  /* Gradient borders */
-  .border-gradient {
-    position: relative;
-  }
-  .border-gradient::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(168, 85, 247, 0.1), rgba(139, 92, 246, 0.3));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
+  /* Gradient border → simple clean border */
+  .border-gradient { border: 1px solid hsl(var(--border)); }
 
-  /* Text shimmer */
+  /* Shimmer text → solid accent (no animation) */
   .text-shimmer {
-    background: linear-gradient(
-      110deg,
-      hsl(var(--primary)) 0%,
-      #a855f7 30%,
-      #ec4899 50%,
-      #a855f7 70%,
-      hsl(var(--primary)) 100%
-    );
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shimmer 3s linear infinite;
+    background: none;
+    color: hsl(var(--primary));
+    -webkit-text-fill-color: hsl(var(--primary));
   }
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   KEYFRAME ANIMATIONS
+   ANIMATIONS — kept minimal & functional
+   Floating/pulse-glow are tamed to near-nothing so existing
+   markup stays calm rather than flashy.
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-@keyframes shimmer {
-  to { background-position: 200% center; }
+@keyframes scale-in {
+  from { transform: scale(0.98); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33% { transform: translateY(-10px) rotate(1deg); }
-  66% { transform: translateY(-5px) rotate(-1deg); }
-}
-
-@keyframes float-slow {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-}
-
-@keyframes float-reverse {
-  0%, 100% { transform: translateY(-10px); }
-  50% { transform: translateY(10px); }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.2); }
-  50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.4), 0 0 80px rgba(139, 92, 246, 0.1); }
-}
-
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
-@keyframes scale-in {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-@keyframes border-dance {
-  0% { background-position: 0% 0%; }
-  100% { background-position: 200% 200%; }
-}
-
-.animate-float { animation: float 6s ease-in-out infinite; }
-.animate-float-slow { animation: float-slow 8s ease-in-out infinite; }
-.animate-float-reverse { animation: float-reverse 7s ease-in-out infinite; }
-.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
-.animate-gradient-shift { 
-  background-size: 200% 200%;
-  animation: gradient-shift 4s ease infinite; 
-}
+/* Float/glow classes retained as gentle no-ops to avoid distracting motion */
+.animate-float,
+.animate-float-slow,
+.animate-float-reverse,
+.animate-pulse-glow { animation: none; }
+.animate-gradient-shift { background-size: 100% 100%; animation: none; }
 .animate-spin-slow { animation: spin-slow 20s linear infinite; }
-.animate-scale-in { animation: scale-in 0.5s ease-out forwards; }
+.animate-scale-in { animation: scale-in 0.4s ease-out forwards; }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   MESH GRADIENT BACKGROUNDS
+   BACKGROUNDS — subtle, light, professional
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 .bg-mesh-hero {
   background:
-    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(139, 92, 246, 0.15), transparent),
-    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(168, 85, 247, 0.1), transparent),
-    radial-gradient(ellipse 50% 60% at 50% 80%, rgba(99, 102, 241, 0.08), transparent),
+    radial-gradient(ellipse 70% 55% at 50% -10%, hsl(var(--primary) / 0.06), transparent 70%),
     hsl(var(--background));
 }
-
 .bg-mesh-section {
-  background:
-    radial-gradient(ellipse 60% 40% at 10% 50%, rgba(139, 92, 246, 0.08), transparent),
-    radial-gradient(ellipse 40% 50% at 90% 50%, rgba(168, 85, 247, 0.06), transparent),
-    hsl(var(--background));
-}
-
-.bg-grid-pattern {
-  background-image: 
-    linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
-  background-size: 60px 60px;
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   SCROLLBAR STYLING
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
   background: hsl(var(--background));
 }
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--secondary));
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary));
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(hsl(var(--foreground) / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--foreground) / 0.04) 1px, transparent 1px);
+  background-size: 56px 56px;
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   SELECTION STYLING
+   SCROLLBAR + SELECTION
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.35);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.55);
+  background-clip: content-box;
+}
+
 ::selection {
-  background: rgba(139, 92, 246, 0.3);
-  color: white;
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
 }

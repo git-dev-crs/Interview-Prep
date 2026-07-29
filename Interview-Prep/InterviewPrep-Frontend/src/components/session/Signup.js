@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Nav from "../Nav";
 import { Link, useNavigate } from "react-router-dom";
-import { FaUser, FaEnvelope, FaLock, FaExclamationCircle } from "react-icons/fa";
-import { API_URL } from "../../config/api";
+import { FaUser, FaEnvelope, FaExclamationCircle } from "react-icons/fa";
+import { API_URL, requestJson } from "../../config/api";
+import PasswordInput from "../PasswordInput";
 import { GoogleLogin } from "@react-oauth/google";
 
 const Signup = () => {
@@ -10,6 +11,7 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwResetSignal, setPwResetSignal] = useState(0);
   const [isDisable, setIsDisable] = useState(true);
   const [isPasswordMatching, setIsPasswordMatching] = useState(true);
   const [getError, setGetError] = useState(null);
@@ -46,59 +48,36 @@ const Signup = () => {
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    const data = {
-      name,
-      email,
-      password,
-    };
-    const url = `${API_URL}/signup`;
+    setGetError(null);
     try {
-      const response = await fetch(url, {
+      const result = await requestJson(`${API_URL}/signup`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        setGetError(error);
-        throw new Error("Network response was not ok");
-      }
-
-      const result = await response.json();
       localStorage.setItem("email", result.email);
       localStorage.setItem("token", result.token);
+      setPwResetSignal((s) => s + 1); // hide passwords before navigating away
       navigate("/");
     } catch (error) {
-      console.error("There was a problem with the fetch operation:", error);
+      setGetError({ message: error.message });
     }
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
+    setGetError(null);
     try {
-      const response = await fetch(`${API_URL}/google-login`, {
+      const result = await requestJson(`${API_URL}/google-login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken: credentialResponse.credential }),
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        setGetError(error);
-        throw new Error(error.message || "Google signup failed");
-      }
-
-      const result = await response.json();
       localStorage.setItem("email", result.email);
       localStorage.setItem("rating", result.rating);
       localStorage.setItem("token", result.token);
       navigate("/");
     } catch (error) {
-      console.error("Google signup error:", error);
+      setGetError({ message: error.message });
     }
   };
 
@@ -156,32 +135,24 @@ const Signup = () => {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground ml-1">Password</label>
-              <div className="relative">
-                <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="password"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder="••••••••"
-                  onChange={(e) => setPassword(e.target.value)}
-                  value={password}
-                  required
-                />
-              </div>
+              <PasswordInput
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                resetSignal={pwResetSignal}
+                required
+              />
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground ml-1">Confirm Password</label>
-              <div className="relative">
-                <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="password"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder="••••••••"
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  value={confirmPassword}
-                  required
-                />
-              </div>
+              <PasswordInput
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                resetSignal={pwResetSignal}
+                required
+              />
               {!isPasswordMatching && (
                 <p className="text-destructive text-xs ml-1">Passwords do not match</p>
               )}

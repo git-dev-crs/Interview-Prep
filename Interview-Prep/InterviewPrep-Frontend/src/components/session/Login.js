@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from "react";
 import Nav from "../Nav";
-import { Link, useNavigate } from "react-router-dom";
-import { FaLock, FaEnvelope, FaExclamationCircle } from "react-icons/fa";
-import { API_URL } from "../../config/api";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { FaEnvelope, FaExclamationCircle } from "react-icons/fa";
+import { API_URL, requestJson } from "../../config/api";
+import PasswordInput from "../PasswordInput";
 import { GoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [pwResetSignal, setPwResetSignal] = useState(0);
   const [isDisable, setIsDisable] = useState(true);
   const [getError, setGetError] = useState(null);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  // If redirected here from a protected route, return there after login.
+  const redirectTo = location.state?.from || "/";
 
   useEffect(() => {
     if (email.length !== 0 && password.length !== 0) {
@@ -23,59 +28,37 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     if (e) e.preventDefault();
-    const data = {
-      email,
-      password,
-    };
-    const url = `${API_URL}/login`;
+    setGetError(null);
     try {
-      const response = await fetch(url, {
+      const result = await requestJson(`${API_URL}/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        setGetError(error);
-        throw new Error("Network response was not ok");
-      } else {
-        const result = await response.json();
-        localStorage.setItem("email", result.email);
-        localStorage.setItem("rating", result.rating);
-        localStorage.setItem("token", result.token);
-        navigate("/");
-      }
+      localStorage.setItem("email", result.email);
+      localStorage.setItem("rating", result.rating);
+      localStorage.setItem("token", result.token);
+      setPwResetSignal((s) => s + 1); // hide password before navigating away
+      navigate(redirectTo, { replace: true });
     } catch (error) {
-      console.error("There was a problem with the fetch operation:", error);
+      setGetError({ message: error.message });
     }
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
+    setGetError(null);
     try {
-      const response = await fetch(`${API_URL}/google-login`, {
+      const result = await requestJson(`${API_URL}/google-login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken: credentialResponse.credential }),
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        setGetError(error);
-        throw new Error(error.message || "Google login failed");
-      }
-
-      const result = await response.json();
       localStorage.setItem("email", result.email);
       localStorage.setItem("rating", result.rating);
       localStorage.setItem("token", result.token);
-      navigate("/");
+      navigate(redirectTo, { replace: true });
     } catch (error) {
-      console.error("Google login error:", error);
+      setGetError({ message: error.message });
     }
   };
 
@@ -118,19 +101,15 @@ const Login = () => {
             <div className="space-y-2">
               <div className="flex justify-between items-center ml-1">
                 <label className="text-sm font-medium text-foreground">Password</label>
-                <a href="#" className="text-xs text-primary hover:underline">Forgot password?</a>
+                <Link to="/forgot-password" className="text-xs text-primary hover:underline">Forgot password?</Link>
               </div>
 
-              <div className="relative">
-                <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="password"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder="••••••••"
-                  onChange={(e) => setPassword(e.target.value)}
-                  value={password}
-                />
-              </div>
+              <PasswordInput
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                resetSignal={pwResetSignal}
+              />
             </div>
 
             <div className="flex items-center space-x-2">

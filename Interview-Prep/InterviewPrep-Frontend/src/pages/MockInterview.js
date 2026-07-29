@@ -3,8 +3,10 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import Nav from "../components/Nav";
 import InterviewTimer from "../components/MockInterview/InterviewTimer";
 import ScoreCard from "../components/MockInterview/ScoreCard";
-import { FaPaperPlane, FaStopCircle, FaArrowRight, FaUserTie, FaClock, FaLayerGroup } from "react-icons/fa";
-import { API_URL, authHeaders } from "../config/api";
+import { FaPaperPlane, FaStopCircle, FaArrowRight, FaUserTie, FaClock, FaLayerGroup, FaMicrophone, FaMicrophoneSlash, FaVolumeUp, FaVolumeMute, FaRedo, FaDownload } from "react-icons/fa";
+import { API_URL, authHeaders, requestJson } from "../config/api";
+import { downloadInterviewReport } from "../utils/generateReport";
+import useSpeech from "../hooks/useSpeech";
 
 const MockInterview = () => {
     const location = useLocation();
@@ -21,14 +23,26 @@ const MockInterview = () => {
     const [sessionId] = useState(state?.sessionId || null);
     const [currentQuestion, setCurrentQuestion] = useState(state?.question || "");
     const [questionNumber, setQuestionNumber] = useState(state?.questionNumber || 1);
+    const [totalQuestions] = useState(state?.totalQuestions || 8);
     const [answer, setAnswer] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isEnding, setIsEnding] = useState(false);
     const [previousScore, setPreviousScore] = useState(null);
     const [showScore, setShowScore] = useState(false);
+    const [pendingFinish, setPendingFinish] = useState(false); // last answer evaluated, report next
     const [interviewCompleted, setInterviewCompleted] = useState(false);
     const [finalReport, setFinalReport] = useState(null);
     const [error, setError] = useState(null);
+
+    // Voice input (Web Speech API — Chrome/Edge; gracefully hidden elsewhere)
+    const [isListening, setIsListening] = useState(false);
+    const [interimText, setInterimText] = useState(""); // live, not-yet-final dictation
+    const recognitionRef = useRef(null);
+    const speechSupported = typeof window !== "undefined" &&
+        (window.SpeechRecognition || window.webkitSpeechRecognition);
+
+    // Voice output — AI reads the question aloud (toggleable, persisted)
+    const { supported: ttsSupported, enabled: voiceEnabled, toggleEnabled: toggleVoice, speaking, speak, cancel: cancelSpeech } = useSpeech();
 
     // Timer state
     const [questionStartTime, setQuestionStartTime] = useState(Date.now());
@@ -44,19 +58,79 @@ const MockInterview = () => {
         }
     }, [currentQuestion, showScore]);
 
+    // AI reads each new question aloud (when voice is enabled and a question is on screen)
+    useEffect(() => {
+        if (currentQuestion && !showScore && !interviewCompleted) {
+            speak(currentQuestion);
+        }
+    }, [currentQuestion, showScore, interviewCompleted, speak]);
+
     // Calculate time spent on current question
     const getTimeSpent = useCallback(() => {
         return Math.floor((Date.now() - questionStartTime) / 1000);
     }, [questionStartTime]);
 
+    // ─── Voice input: toggle speech-to-text dictation ───
+    const toggleListening = () => {
+        if (!speechSupported) return;
+
+        if (isListening) {
+            recognitionRef.current?.stop();
+            setIsListening(false);
+            setInterimText("");
+            return;
+        }
+
+        // Don't let the AI keep reading the question while the candidate is answering.
+        cancelSpeech();
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true; // live feedback as the user speaks
+        recognition.lang = "en-IN";
+
+        recognition.onresult = (event) => {
+            let finalTranscript = "";
+            let interim = "";
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const chunk = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += chunk + " ";
+                } else {
+                    interim += chunk;
+                }
+            }
+            if (finalTranscript) {
+                setAnswer(prev => (prev ? prev.trimEnd() + " " : "") + finalTranscript.trim());
+            }
+            setInterimText(interim);
+        };
+        recognition.onerror = () => { setIsListening(false); setInterimText(""); };
+        recognition.onend = () => { setIsListening(false); setInterimText(""); };
+
+        recognitionRef.current = recognition;
+        recognition.start();
+        setIsListening(true);
+    };
+
+    // Stop dictation when the component unmounts
+    useEffect(() => {
+        return () => recognitionRef.current?.stop();
+    }, []);
+
     // Handle submitting answer and getting next question
     const handleSubmitAnswer = async () => {
         if (!answer.trim() || isSubmitting) return;
+        if (isListening) {
+            recognitionRef.current?.stop();
+            setIsListening(false);
+        }
         setIsSubmitting(true);
         setError(null);
 
         try {
-            const response = await fetch(`${API_URL}/api/mock-interview/next`, {
+            const data = await requestJson(`${API_URL}/api/mock-interview/next`, {
                 method: "POST",
                 headers: authHeaders(),
                 body: JSON.stringify({
@@ -66,19 +140,22 @@ const MockInterview = () => {
                 }),
             });
 
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || "Failed to submit answer");
-
             // Show score for previous answer
             if (data.previousEvaluation) {
                 setPreviousScore(data.previousEvaluation);
                 setShowScore(true);
             }
 
-            // Prepare next question (shown after user clicks "Next")
-            setCurrentQuestion(data.question);
-            setQuestionNumber(data.questionNumber);
-            setAnswer("");
+            if (data.finished) {
+                // That was the last question — next step is the final report
+                setPendingFinish(true);
+                setAnswer("");
+            } else {
+                // Prepare next question (shown after user clicks "Next")
+                setCurrentQuestion(data.question);
+                setQuestionNumber(data.questionNumber);
+                setAnswer("");
+            }
         } catch (err) {
             setError(err.message);
         } finally {
@@ -86,8 +163,12 @@ const MockInterview = () => {
         }
     };
 
-    // Move to next question after viewing score
+    // Move to next question after viewing score (or fetch final report if finished)
     const handleNextQuestion = () => {
+        if (pendingFinish) {
+            handleEndInterview();
+            return;
+        }
         setShowScore(false);
         setPreviousScore(null);
         setQuestionStartTime(Date.now());
@@ -97,9 +178,10 @@ const MockInterview = () => {
     const handleEndInterview = async () => {
         setIsEnding(true);
         setError(null);
+        cancelSpeech();
 
         try {
-            const response = await fetch(`${API_URL}/api/mock-interview/end`, {
+            const data = await requestJson(`${API_URL}/api/mock-interview/end`, {
                 method: "POST",
                 headers: authHeaders(),
                 body: JSON.stringify({
@@ -108,9 +190,6 @@ const MockInterview = () => {
                     timeSpent: getTimeSpent(),
                 }),
             });
-
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || "Failed to end interview");
 
             setFinalReport(data.session);
             setInterviewCompleted(true);
@@ -212,6 +291,16 @@ const MockInterview = () => {
                                                 💡 {q.feedback}
                                             </p>
                                         )}
+                                        {q.idealAnswer && (
+                                            <details className="mt-2">
+                                                <summary className="text-xs font-semibold text-primary cursor-pointer select-none hover:underline">
+                                                    ✨ See a 10/10 model answer
+                                                </summary>
+                                                <p className="mt-1 text-xs text-muted-foreground bg-secondary/20 p-3 rounded-lg border-l-2 border-green-500/50 leading-relaxed">
+                                                    {q.idealAnswer}
+                                                </p>
+                                            </details>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -221,10 +310,16 @@ const MockInterview = () => {
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Link
                                 to="/mock-interview/setup"
-                                className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-primary-foreground font-semibold shadow-lg hover:scale-[1.02] transition-all"
+                                className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-orange-600 text-primary-foreground font-semibold shadow-lg hover:scale-[1.02] transition-all"
                             >
                                 Start New Interview <FaArrowRight className="ml-2" />
                             </Link>
+                            <button
+                                onClick={() => downloadInterviewReport(finalReport)}
+                                className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-primary/10 text-primary border border-primary/20 font-semibold hover:bg-primary/20 transition-all"
+                            >
+                                <FaDownload className="mr-2" /> Download PDF Report
+                            </button>
                             <Link
                                 to="/dashboard"
                                 className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-secondary text-secondary-foreground font-semibold hover:bg-secondary/80 transition-all"
@@ -246,7 +341,7 @@ const MockInterview = () => {
                 <div className="max-w-3xl mx-auto">
                     {/* Interview Header */}
                     <div className="flex flex-col md:flex-row items-center justify-between mb-8 p-4 rounded-xl bg-card border border-border/50">
-                        <div className="flex items-center gap-4 mb-4 md:mb-0">
+                        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mb-4 md:mb-0">
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <FaUserTie className="text-primary" />
                                 <span className="font-medium">{state?.role}</span>
@@ -261,13 +356,68 @@ const MockInterview = () => {
                                 <FaClock className="text-primary" />
                                 <span>{state?.experience}</span>
                             </div>
+                            {state?.difficulty && (
+                                <>
+                                    <div className="w-px h-4 bg-border" />
+                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${state.difficulty === "Hard"
+                                        ? "bg-red-500/10 text-red-400"
+                                        : state.difficulty === "Easy"
+                                            ? "bg-green-500/10 text-green-400"
+                                            : "bg-yellow-500/10 text-yellow-400"
+                                        }`}>
+                                        {state.difficulty}
+                                    </span>
+                                </>
+                            )}
                         </div>
-                        <InterviewTimer
-                            totalSeconds={perQuestionSeconds}
-                            onTimeUp={handleQuestionTimeUp}
-                            warningThreshold={60}
-                            key={questionNumber} // Reset timer on new question
-                        />
+                        <div className="flex items-center gap-2">
+                            {ttsSupported && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={toggleVoice}
+                                        title={voiceEnabled ? "Mute AI voice" : "Let the AI read questions aloud"}
+                                        aria-pressed={voiceEnabled}
+                                        className={`inline-flex items-center justify-center w-9 h-9 rounded-lg border transition-all ${voiceEnabled
+                                            ? "bg-primary/10 text-primary border-primary/30"
+                                            : "bg-secondary/30 text-muted-foreground border-border/50 hover:text-primary"
+                                            } ${speaking ? "animate-pulse" : ""}`}
+                                    >
+                                        {voiceEnabled ? <FaVolumeUp /> : <FaVolumeMute />}
+                                    </button>
+                                    {voiceEnabled && !showScore && (
+                                        <button
+                                            type="button"
+                                            onClick={() => speak(currentQuestion)}
+                                            title="Replay the question"
+                                            className="inline-flex items-center justify-center w-9 h-9 rounded-lg border bg-secondary/30 text-muted-foreground border-border/50 hover:text-primary transition-all"
+                                        >
+                                            <FaRedo className={speaking ? "animate-spin" : ""} />
+                                        </button>
+                                    )}
+                                </>
+                            )}
+                            <InterviewTimer
+                                totalSeconds={perQuestionSeconds}
+                                onTimeUp={handleQuestionTimeUp}
+                                warningThreshold={60}
+                                key={questionNumber} // Reset timer on new question
+                            />
+                        </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mb-8">
+                        <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
+                            <span className="font-medium">Question {questionNumber} of {totalQuestions}</span>
+                            <span>{Math.round((questionNumber / totalQuestions) * 100)}% complete</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-secondary/50 overflow-hidden">
+                            <div
+                                className="h-full rounded-full bg-gradient-to-r from-primary to-orange-500 transition-all duration-700 ease-out"
+                                style={{ width: `${(questionNumber / totalQuestions) * 100}%` }}
+                            />
+                        </div>
                     </div>
 
                     {/* Error */}
@@ -283,14 +433,18 @@ const MockInterview = () => {
                             <ScoreCard
                                 scores={previousScore.scores}
                                 feedback={previousScore.feedback}
+                                idealAnswer={previousScore.idealAnswer}
                                 isCompact={true}
                             />
                             <div className="text-center mt-4">
                                 <button
                                     onClick={handleNextQuestion}
-                                    className="inline-flex items-center px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-primary-foreground font-semibold shadow-lg hover:scale-[1.02] transition-all"
+                                    disabled={isEnding}
+                                    className="inline-flex items-center px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-orange-600 text-primary-foreground font-semibold shadow-lg hover:scale-[1.02] transition-all"
                                 >
-                                    Next Question <FaArrowRight className="ml-2" />
+                                    {pendingFinish
+                                        ? (isEnding ? "Generating Report..." : <>View Final Report <FaArrowRight className="ml-2" /></>)
+                                        : <>Next Question <FaArrowRight className="ml-2" /></>}
                                 </button>
                             </div>
                         </div>
@@ -314,7 +468,25 @@ const MockInterview = () => {
 
                             {/* Answer Input */}
                             <div className="mb-6">
-                                <label className="text-sm font-medium text-foreground mb-2 block">Your Answer</label>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="text-sm font-medium text-foreground">Your Answer</label>
+                                    {speechSupported && (
+                                        <button
+                                            type="button"
+                                            onClick={toggleListening}
+                                            disabled={isSubmitting}
+                                            title={isListening ? "Stop dictation" : "Answer with your voice"}
+                                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${isListening
+                                                ? "bg-red-500/10 text-red-400 border-red-500/30 animate-pulse"
+                                                : "bg-secondary/30 text-muted-foreground border-border/50 hover:text-primary hover:border-primary/50"
+                                                }`}
+                                        >
+                                            {isListening
+                                                ? <><FaMicrophoneSlash /> Stop Recording</>
+                                                : <><FaMicrophone /> Speak Answer</>}
+                                        </button>
+                                    )}
+                                </div>
                                 <textarea
                                     ref={answerRef}
                                     value={answer}
@@ -323,6 +495,12 @@ const MockInterview = () => {
                                     className="w-full min-h-[180px] p-4 rounded-xl border border-input bg-background/50 text-foreground text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ring-offset-background placeholder:text-muted-foreground transition-all"
                                     disabled={isSubmitting}
                                 />
+                                {isListening && (
+                                    <div className="mt-2 flex items-start gap-2 text-sm text-primary/80 italic">
+                                        <span className="mt-0.5 flex h-2 w-2 flex-shrink-0 rounded-full bg-red-500 animate-pulse" />
+                                        <span>{interimText || "Listening… start speaking your answer"}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                                     <span>💡 Tip: Structure your answer with key points for better scores</span>
                                     <span>{answer.length} chars</span>
@@ -335,7 +513,7 @@ const MockInterview = () => {
                                     onClick={handleSubmitAnswer}
                                     disabled={!answer.trim() || isSubmitting}
                                     className={`flex-1 inline-flex items-center justify-center px-6 py-3.5 rounded-xl text-base font-semibold transition-all duration-300 ${answer.trim() && !isSubmitting
-                                        ? "bg-gradient-to-r from-primary to-purple-600 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.01]"
+                                        ? "bg-gradient-to-r from-primary to-orange-600 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.01]"
                                         : "bg-muted text-muted-foreground cursor-not-allowed"
                                         }`}
                                 >
