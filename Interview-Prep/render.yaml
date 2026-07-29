@@ -35,7 +35,7 @@ services:
         value: gemini-flash-latest
       # CLIENT_URL is the Render frontend URL — update after first deploy
       - key: CLIENT_URL
-        value: https://interviewprep-frontend.onrender.com
+        value: https://interviewprep-frontend-slr4.onrender.com
       # ── SMTP (real password-reset emails) ─────────────────────────────────
       - key: SMTP_HOST
         value: smtp.gmail.com
@@ -58,7 +58,7 @@ services:
     envVars:
       # Backend URL — update to match your actual backend Render URL after deploy
       - key: REACT_APP_API_URL
-        value: https://interviewprep-backend.onrender.com
+        value: https://interviewprep-backend-rt48.onrender.com
       - key: REACT_APP_GOOGLE_CLIENT_ID
         sync: false          # paste your Google Client ID in Render dashboard
     routes:
