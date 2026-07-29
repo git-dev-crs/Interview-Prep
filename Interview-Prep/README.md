@@ -27,6 +27,25 @@
 
 ---
 
+## 📸 Screenshots
+
+### 🏠 Home Page
+![Home Page](docs/screenshots/home.png)
+
+### 🔐 Login
+![Login Page](docs/screenshots/login.png)
+
+### 🎤 Mock Interview Setup
+![Interview Setup](docs/screenshots/interview_setup.png)
+
+### 🗺️ DSA Roadmap
+![DSA Roadmap](docs/screenshots/dsa_roadmap.png)
+
+### 📚 CS Core Subjects
+![CS Subjects](docs/screenshots/cs_subjects.png)
+
+---
+
 ## 🏗️ Architecture
 
 ```mermaid
