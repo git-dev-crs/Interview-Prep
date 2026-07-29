@@ -213,4 +213,4 @@ This project is deployed on **Render** using the included `render.yaml` Blueprin
 
 ---
 
-<p align="center">Built with ❤️ for interview preparation</p>
+<p align="center">Mohit Jatav</p>
