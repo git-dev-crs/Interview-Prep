@@ -13,7 +13,7 @@ services:
   - type: web
     name: interviewprep-backend
     runtime: node
-    rootDir: InterviewPrep-Backend
+    rootDir: Interview-Prep/InterviewPrep-Backend
     buildCommand: npm ci --only=production
     startCommand: node index.js
     plan: free
@@ -52,7 +52,7 @@ services:
   - type: web
     name: interviewprep-frontend
     runtime: static
-    rootDir: InterviewPrep-Frontend
+    rootDir: Interview-Prep/InterviewPrep-Frontend
     buildCommand: npm ci; npm run build
     staticPublishPath: build
     envVars:
