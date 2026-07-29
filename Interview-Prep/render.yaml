@@ -53,9 +53,8 @@ services:
     name: interviewprep-frontend
     runtime: static
     rootDir: InterviewPrep-Frontend
-    buildCommand: npm ci && npm run build
+    buildCommand: npm ci; npm run build
     staticPublishPath: build
-    plan: free
     envVars:
       # Backend URL — update to match your actual backend Render URL after deploy
       - key: REACT_APP_API_URL
