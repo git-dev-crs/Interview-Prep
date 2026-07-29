@@ -213,4 +213,4 @@ This project is deployed on **Render** using the included `render.yaml` Blueprin
 
 ---
 
-<p align="center">Mohit Jatav</p>
+<p align="center">Crafted with ❤️ by <b><a href="https://github.com/git-dev-crs">Mohit Jatav</a></b></p>
